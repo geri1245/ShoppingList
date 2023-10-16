@@ -1,57 +1,76 @@
-use std::collections::HashMap;
-// use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use rusqlite::{params, Connection, Result};
-
-// #[get("/")]
-// async fn hello() -> impl Responder {
-//     HttpResponse::Ok().body("Hello world!")
-// }
-
-// #[post("/echo")]
-// async fn echo(req_body: String) -> impl Responder {
-//     HttpResponse::Ok().body(req_body)
-// }
-
-// async fn manual_hello() -> impl Responder {
-//     HttpResponse::Ok().body("Hey there!")
-// }
-
-// #[actix_web::main]
-// async fn main() -> std::io::Result<()> {
-//     HttpServer::new(|| {
-//         App::new()
-//             .service(hello)
-//             .service(echo)
-//             .route("/hey", web::get().to(manual_hello))
-//     })
-//     .bind("127.0.0.1:8080")?
-//     .run()
-//     .await
-// }
-
 mod database_manager;
 mod string_utils;
 
-fn main() -> Result<()> {
-    let db_manager =
-        database_manager::DatabaseManager::new("./users.db3", "dummyUser".to_string())?;
+use axum::{
+    http::StatusCode,
+    routing::{get, post},
+    Json, Router,
+};
+use serde::{Deserialize, Serialize};
+use std::net::SocketAddr;
 
-    // let existing_ingredients = db_manager.query_ingredients(&recipe.ingredients)?;
-    // let num_of_missing_ingredients = recipe.ingredients.len() - existing_ingredients.len();
-    // println!("{:?}", num_of_missing_ingredients);
-    // if num_of_missing_ingredients > 0 {
-    //     let mut missing_ingredients = Vec::with_capacity(num_of_missing_ingredients);
-    //     for ingredient in &recipe.ingredients {
-    //         if !existing_ingredients.contains_key(&ingredient.name) {
-    //             missing_ingredients.push(ingredient);
-    //         }
-    //     }
-    //     db_manager.insert_ingredients(&missing_ingredients[..])?;
-    // }
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // initialize tracing
+    tracing_subscriber::fmt::init();
 
-    // let all_ingredients = db_manager.query_ingredients(&recipe.ingredients)?;
-    // println!("{:?}", all_ingredients.get(&recipe.ingredients[1].name));
-    // let ingredients = db_manager.insert_recipe_ingredients(&recipe, 12, &all_ingredients);
+    let db_manager = database_manager::DatabaseManager::new("./my_db.sq3", "awesomeuser".into())?;
+
+    // db_manager.add_item()?;
+    // db_manager.add_item("sonka".into(), 3)?;
+    let items = db_manager.get_all()?;
+    dbg!(&items[0]);
+    // println!(""items[0]);
+
+    // build our application with a route
+    let app = Router::new()
+        // `GET /` goes to `root`
+        .route("/", get(root))
+        // `POST /users` goes to `create_user`
+        .route("/users", post(create_user));
+
+    // run our app with hyper
+    // `axum::Server` is a re-export of `hyper::Server`
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    tracing::debug!("listening on {}", addr);
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
 
     Ok(())
+}
+
+// basic handler that responds with a static string
+async fn root() -> &'static str {
+    "Hello, World!"
+}
+
+async fn create_user(
+    // this argument tells axum to parse the request body
+    // as JSON into a `CreateUser` type
+    Json(payload): Json<CreateUser>,
+) -> (StatusCode, Json<User>) {
+    // insert your application logic here
+    let user = User {
+        id: 1337,
+        username: payload.username,
+    };
+
+    // this will be converted into a JSON response
+    // with a status code of `201 Created`
+    (StatusCode::CREATED, Json(user))
+}
+
+// the input to our `create_user` handler
+#[derive(Deserialize)]
+struct CreateUser {
+    username: String,
+}
+
+// the output to our `create_user` handler
+#[derive(Serialize)]
+struct User {
+    id: u64,
+    username: String,
 }

@@ -1,5 +1,6 @@
 // use crate::string_utils::{add_to_string_with_wrapping_characters, append_as_string};
 
+use axum::extract::Query;
 use rusqlite::types::FromSql;
 use rusqlite::{params, Connection, Error, Result};
 use std::collections::HashMap;
@@ -10,6 +11,12 @@ use std::collections::HashMap;
 
 const TABLE_NAME: &'static str = "";
 
+#[derive(Debug)]
+pub struct ShoppingItem {
+    name: String,
+    quantity: u32,
+}
+
 pub struct DatabaseManager {
     connection: Connection,
     _user_name: String,
@@ -18,25 +25,47 @@ pub struct DatabaseManager {
 impl DatabaseManager {
     // No need for the batch execution right now, but keep it for later, when more tables might be created
     fn create_tables(&self) -> Result<()> {
-        format!("");
         let table_creation_queries = "CREATE TABLE IF NOT EXISTS ShoppingList (
                       Item            TEXT,
                       Quantity        INTEGER);";
         self.connection.execute_batch(table_creation_queries)
     }
 
-    pub fn new(database_folder: &str, user_name: String) -> Result<DatabaseManager> {
-        let conn = Connection::open(database_folder)?;
+    pub fn new(database_path: &str, user_name: String) -> Result<DatabaseManager> {
+        let conn = Connection::open(database_path)?;
         let db_manager = DatabaseManager {
             connection: conn,
             _user_name: user_name,
         };
-        db_manager.create_tables()?;
+        // db_manager.create_tables()?;
         Ok(db_manager)
     }
 
-    pub fn add_item(item: String, quantity: u32) {
-        "INSERT INTO Recipes (name, categories, cookTime, prepTime) VALUES (?1 ?2)";
+    pub fn get_all(&self) -> Result<(Vec<ShoppingItem>)> {
+        let query = "Select * from ShoppingList";
+        let mut statement = self.connection.prepare(query)?;
+        let iter = statement.query_map([], |row| {
+            Ok(ShoppingItem {
+                name: row.get(0)?,
+                quantity: row.get(1)?,
+            })
+        })?;
+
+        let mut already_contained_ingredients = Vec::with_capacity(8);
+        for item in iter {
+            already_contained_ingredients.push(item?);
+        }
+
+        Ok(already_contained_ingredients)
+    }
+
+    pub fn add_item(&self) -> Result<()> {
+        let query = r#"INSERT INTO ShoppingList (Item, Quantity) VALUES ("alma", 3)"#;
+        // self.connection
+        //     .execute(query, &[&item, &quantity.to_string()])?;
+        self.connection.execute(query, [])?;
+
+        Ok(())
     }
 
     // pub fn insert_recipe(&self, recipe: Recipe) -> Result<()> {

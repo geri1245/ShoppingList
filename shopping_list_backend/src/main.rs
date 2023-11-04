@@ -2,10 +2,9 @@ mod database_manager;
 mod string_utils;
 
 use axum::{
-    extract::State,
     http::StatusCode,
     routing::{get, post},
-    Json, Router,
+    Extension, Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -15,7 +14,6 @@ use std::{
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // initialize tracing
     tracing_subscriber::fmt::init();
 
     let db_manager = Arc::new(Mutex::new(database_manager::DatabaseManager::new(
@@ -23,24 +21,12 @@ async fn main() -> anyhow::Result<()> {
         "awesomeuser".into(),
     )?));
 
-    // db_manager.add_item()?;
-    // db_manager.add_item("sonka".into(), 3)?;
-    // let items = db_manager.lock().unwrap().get_all();
-    // dbg!(items);
+    let app_state = Arc::new(AppState { db_manager });
 
-    // build our application with a route
-    let router: Router<AppState> =
-        Router::new()
-            .route("/add_item", post(add_item))
-            .with_state(AppState {
-                db_manager: db_manager.clone(),
-            });
-
-    let router: Router<()> = router
+    let router = Router::new()
+        .route("/add_item", post(add_item))
         .route("/get_items", get(get_list))
-        .with_state(AppState {
-            db_manager: db_manager.clone(),
-        });
+        .layer(Extension(app_state));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::debug!("listening on {}", addr);
@@ -52,12 +38,12 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn get_list(state: State<AppState>) -> Json<Vec<ShoppingItem>> {
+async fn get_list(state: Extension<Arc<AppState>>) -> Json<Vec<ShoppingItem>> {
     Json(state.0.db_manager.lock().unwrap().get_all().unwrap())
 }
 
 async fn add_item(
-    state: State<AppState>,
+    state: Extension<Arc<AppState>>,
     Json(payload): Json<ShoppingItem>,
 ) -> (StatusCode, Json<()>) {
     state
@@ -75,12 +61,6 @@ async fn add_item(
 pub struct ShoppingItem {
     name: String,
     quantity: u32,
-}
-
-// the input to our `create_user` handler
-#[derive(Deserialize)]
-struct CreateUser {
-    username: String,
 }
 
 #[derive(Clone)]

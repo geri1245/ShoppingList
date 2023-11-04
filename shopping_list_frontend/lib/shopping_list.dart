@@ -13,16 +13,22 @@ class ShoppingList extends StatefulWidget {
 class _ShoppingListState extends State<ShoppingList> {
   List<ShoppingItem> items = [];
 
+  void _onItemChecked(String itemName) {
+    setState(() {
+      items.removeWhere((shoppingItem) => shoppingItem.itemName == itemName);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           AutocompleteBox((value) => setState(() {
                 items.add(ShoppingItem(value, 1));
               })),
-          ShoppingItemList(items),
+          ShoppingItemList(items, _onItemChecked),
         ],
       ),
     );

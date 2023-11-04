@@ -52,11 +52,10 @@ impl DatabaseManager {
         Ok(already_contained_ingredients)
     }
 
-    pub fn add_item(&self, item: ShoppingItem) -> Result<()> {
-        let query = r#"INSERT INTO ShoppingList (Item, Quantity) VALUES ("?1", ?2)"#;
+    pub fn add_item(&self, item: &ShoppingItem) -> Result<()> {
+        let query = r#"INSERT INTO ShoppingList (Item, Quantity) VALUES (?1, ?2)"#;
         self.connection
             .execute(query, &[&item.name, &item.quantity.to_string()])?;
-        self.connection.execute(query, [])?;
 
         Ok(())
     }

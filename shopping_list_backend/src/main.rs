@@ -56,8 +56,17 @@ async fn get_list(state: State<AppState>) -> Json<Vec<ShoppingItem>> {
     Json(state.0.db_manager.lock().unwrap().get_all().unwrap())
 }
 
-async fn add_item(Json(payload): Json<ShoppingItem>) -> (StatusCode, Json<()>) {
-    // state.0.db_manager.lock().unwrap().().unwrap();
+async fn add_item(
+    state: State<AppState>,
+    Json(payload): Json<ShoppingItem>,
+) -> (StatusCode, Json<()>) {
+    state
+        .0
+        .db_manager
+        .lock()
+        .unwrap()
+        .add_item(&payload)
+        .unwrap();
 
     (StatusCode::OK, Json(()))
 }

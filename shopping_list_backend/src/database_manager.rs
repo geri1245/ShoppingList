@@ -1,9 +1,7 @@
 // use crate::string_utils::{add_to_string_with_wrapping_characters, append_as_string};
 
-use axum::extract::Query;
 use rusqlite::types::FromSql;
 use rusqlite::{params, Connection, Error, Result};
-use std::collections::HashMap;
 
 // Recipes(RecipeID, Name, Categories, CookTime, PrepTime)
 // Ingredients(IngredientID, Name, NutritionalData)
@@ -11,25 +9,20 @@ use std::collections::HashMap;
 
 const TABLE_NAME: &'static str = "";
 
-#[derive(Debug)]
-pub struct ShoppingItem {
-    name: String,
-    quantity: u32,
-}
-
 pub struct DatabaseManager {
     connection: Connection,
     _user_name: String,
 }
 
+use crate::ShoppingItem;
+
 impl DatabaseManager {
-    // No need for the batch execution right now, but keep it for later, when more tables might be created
-    fn create_tables(&self) -> Result<()> {
-        let table_creation_queries = "CREATE TABLE IF NOT EXISTS ShoppingList (
-                      Item            TEXT,
-                      Quantity        INTEGER);";
-        self.connection.execute_batch(table_creation_queries)
-    }
+    // fn create_table(&self) -> Result<()> {
+    //     let table_creation_queries = "CREATE TABLE IF NOT EXISTS ShoppingList (
+    //                   Item            TEXT,
+    //                   Quantity        INTEGER);";
+    //     self.connection.execute_batch(table_creation_queries)
+    // }
 
     pub fn new(database_path: &str, user_name: String) -> Result<DatabaseManager> {
         let conn = Connection::open(database_path)?;
@@ -41,7 +34,7 @@ impl DatabaseManager {
         Ok(db_manager)
     }
 
-    pub fn get_all(&self) -> Result<(Vec<ShoppingItem>)> {
+    pub fn get_all(&self) -> Result<Vec<ShoppingItem>> {
         let query = "Select * from ShoppingList";
         let mut statement = self.connection.prepare(query)?;
         let iter = statement.query_map([], |row| {
@@ -59,10 +52,10 @@ impl DatabaseManager {
         Ok(already_contained_ingredients)
     }
 
-    pub fn add_item(&self) -> Result<()> {
-        let query = r#"INSERT INTO ShoppingList (Item, Quantity) VALUES ("alma", 3)"#;
-        // self.connection
-        //     .execute(query, &[&item, &quantity.to_string()])?;
+    pub fn add_item(&self, item: ShoppingItem) -> Result<()> {
+        let query = r#"INSERT INTO ShoppingList (Item, Quantity) VALUES ("?1", ?2)"#;
+        self.connection
+            .execute(query, &[&item.name, &item.quantity.to_string()])?;
         self.connection.execute(query, [])?;
 
         Ok(())

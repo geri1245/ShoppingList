@@ -17,7 +17,7 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     let db_manager = Arc::new(Mutex::new(database_manager::DatabaseManager::new(
-        "./my_db.sq3",
+        "./my_db.sqlite3",
         "awesomeuser".into(),
     )?));
 
@@ -26,6 +26,7 @@ async fn main() -> anyhow::Result<()> {
     let router = Router::new()
         .route("/add_item", post(add_item))
         .route("/get_items", get(get_list))
+        .route("/delete_item", post(delete_item))
         .layer(Extension(app_state));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -57,6 +58,21 @@ async fn add_item(
     (StatusCode::OK, Json(()))
 }
 
+async fn delete_item(
+    state: Extension<Arc<AppState>>,
+    Json(payload): Json<ShoppingItem>,
+) -> (StatusCode, Json<()>) {
+    state
+        .0
+        .db_manager
+        .lock()
+        .unwrap()
+        .delete_item(&payload)
+        .unwrap();
+
+    (StatusCode::OK, Json(()))
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ShoppingItem {
     name: String,
@@ -66,11 +82,4 @@ pub struct ShoppingItem {
 #[derive(Clone)]
 struct AppState {
     db_manager: Arc<Mutex<database_manager::DatabaseManager>>,
-}
-
-// the output to our `create_user` handler
-#[derive(Serialize)]
-struct User {
-    id: u64,
-    username: String,
 }

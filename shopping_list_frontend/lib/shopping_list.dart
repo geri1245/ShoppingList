@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shopping_list_frontend/autocomplete_box.dart';
+import 'package:shopping_list_frontend/http_requests.dart';
 import 'package:shopping_list_frontend/shopping_item.dart';
 import 'package:shopping_list_frontend/shopping_item_list.dart';
 
@@ -11,12 +12,37 @@ class ShoppingList extends StatefulWidget {
 }
 
 class _ShoppingListState extends State<ShoppingList> {
-  List<ShoppingItem> items = [];
+  List<ShoppingItem> _items = [];
+  late Future<List<ShoppingItem>> futureItems;
+
+  void setItems(List<ShoppingItem> items) {
+    setState(() {
+      _items = items;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    futureItems = fetchItems();
+    futureItems.then((value) => setItems(value), onError: (o) => {});
+  }
 
   void _onItemChecked(String itemName) {
     setState(() {
-      items.removeWhere((shoppingItem) => shoppingItem.itemName == itemName);
+      _items.removeWhere((shoppingItem) => shoppingItem.itemName == itemName);
     });
+
+    removeItem(ShoppingItem(itemName: itemName, count: 0));
+  }
+
+  void _onItemAdded(String name, int quantity) {
+    var itemToAdd = ShoppingItem(itemName: name, count: quantity);
+    setState(() {
+      _items.add(itemToAdd);
+    });
+
+    addItem(itemToAdd);
   }
 
   @override
@@ -25,10 +51,8 @@ class _ShoppingListState extends State<ShoppingList> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          AutocompleteBox((value) => setState(() {
-                items.add(ShoppingItem(value, 1));
-              })),
-          ShoppingItemList(items, _onItemChecked),
+          AutocompleteBox(_onItemAdded),
+          ShoppingItemList(_items, _onItemChecked),
         ],
       ),
     );

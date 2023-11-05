@@ -1,13 +1,13 @@
 // use crate::string_utils::{add_to_string_with_wrapping_characters, append_as_string};
 
 use rusqlite::types::FromSql;
-use rusqlite::{params, Connection, Error, Result};
+use rusqlite::{Connection, Error, Result};
 
 // Recipes(RecipeID, Name, Categories, CookTime, PrepTime)
 // Ingredients(IngredientID, Name, NutritionalData)
 // RecipeIngredients(RecipeID, IngredientID, Phase, Quantity, Unit)
 
-const TABLE_NAME: &'static str = "";
+const TABLE_NAME: &'static str = "ShoppingList";
 
 pub struct DatabaseManager {
     connection: Connection,
@@ -17,12 +17,14 @@ pub struct DatabaseManager {
 use crate::ShoppingItem;
 
 impl DatabaseManager {
-    // fn create_table(&self) -> Result<()> {
-    //     let table_creation_queries = "CREATE TABLE IF NOT EXISTS ShoppingList (
-    //                   Item            TEXT,
-    //                   Quantity        INTEGER);";
-    //     self.connection.execute_batch(table_creation_queries)
-    // }
+    fn _create_table(&self) -> Result<()> {
+        let table_creation_queries = format!(
+            "CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
+                      Item            TEXT,
+                      Quantity        INTEGER);"
+        );
+        self.connection.execute_batch(&table_creation_queries)
+    }
 
     pub fn new(database_path: &str, user_name: String) -> Result<DatabaseManager> {
         let conn = Connection::open(database_path)?;
@@ -35,133 +37,61 @@ impl DatabaseManager {
     }
 
     pub fn get_all(&self) -> Result<Vec<ShoppingItem>> {
-        let query = "Select * from ShoppingList";
-        let mut statement = self.connection.prepare(query)?;
-        let iter = statement.query_map([], |row| {
-            Ok(ShoppingItem {
-                name: row.get(0)?,
-                quantity: row.get(1)?,
-            })
-        })?;
+        let query = format!("Select * from {TABLE_NAME}");
+        let mut statement = self.connection.prepare(&query)?;
 
-        let mut already_contained_ingredients = Vec::with_capacity(8);
-        for item in iter {
-            already_contained_ingredients.push(item?);
+        let items = statement
+            .query_map([], |row| {
+                Ok(ShoppingItem {
+                    name: row.get(0)?,
+                    quantity: row.get(1)?,
+                })
+            })?
+            .filter_map(|result_item| result_item.ok())
+            .collect();
+
+        Ok(items)
+    }
+
+    pub fn get_where(&self, name: String) -> Result<ShoppingItem> {
+        let query = format!("Select * from {TABLE_NAME} WHERE Item=?1");
+        let mut statement = self.connection.prepare(&query)?;
+
+        let mut iter = statement.query_map([], |row| Ok(row.get(0)?))?;
+
+        match iter.next() {
+            Some(row) => {
+                return Ok(ShoppingItem {
+                    name,
+                    quantity: row.unwrap(),
+                });
+            }
+            None => Err(Error::QueryReturnedNoRows),
         }
-
-        Ok(already_contained_ingredients)
     }
 
     pub fn add_item(&self, item: &ShoppingItem) -> Result<()> {
-        let query = r#"INSERT INTO ShoppingList (Item, Quantity) VALUES (?1, ?2)"#;
+        let query = format!("INSERT INTO {TABLE_NAME} (Item, Quantity) VALUES (?1, ?2)");
         self.connection
-            .execute(query, &[&item.name, &item.quantity.to_string()])?;
+            .execute(&query, &[&item.name, &item.quantity.to_string()])?;
 
         Ok(())
     }
 
-    // pub fn insert_recipe(&self, recipe: Recipe) -> Result<()> {
-    //     let count_query = "SELECT COUNT(*) FROM Recipes WHERE userName = ?1 AND recipeName = ?2";
-    //     let mut result = self.connection.prepare(count_query)?;
-    //     let mut result_iter = result.query_map(params![recipe.user_name, recipe.name], |rows| {
-    //         Ok(rows.get::<_, i32>(0)?)
-    //     })?;
-    //     let num_of_recipes = result_iter.next().unwrap_or(Ok(0))?;
+    pub fn delete_item(&self, item: &ShoppingItem) -> Result<()> {
+        let query = format!("DELETE FROM {TABLE_NAME} WHERE Item=?1");
+        self.connection.execute(&query, &[&item.name])?;
 
-    //     if num_of_recipes != 0 {
-    //         return Ok(());
-    //     }
-    //     let query =
-    //         "INSERT INTO Recipes (name, categories, cookTime, prepTime) VALUES (?1 ?2 ?3 ?4)";
-    //     self.connection.execute(
-    //         query,
-    //         params![
-    //             recipe.name,
-    //             recipe.categories.join(" "),
-    //             recipe.cook_time,
-    //             recipe.prep_time
-    //         ],
-    //     )?;
-    //     Ok(())
-    // }
+        Ok(())
+    }
 
-    // fn single_result_query<T: FromSql>(&self, query: &str) -> Result<T> {
-    //     let mut statement = self.connection.prepare(&query)?;
-    //     let mut iter = statement.query_map([], |row| Ok(row.get::<usize, T>(0)?))?;
+    fn _single_result_query<T: FromSql>(&self, query: &str) -> Result<T> {
+        let mut statement = self.connection.prepare(&query)?;
+        let mut iter = statement.query_map([], |row| Ok(row.get::<usize, T>(0)?))?;
 
-    //     match iter.next() {
-    //         Some(row) => row,
-    //         None => Err(Error::QueryReturnedNoRows),
-    //     }
-    // }
-
-    // pub fn insert_ingredients(&self, ingredients: &[&Ingredient]) -> Result<usize> {
-    //     let mut query = "INSERT INTO Ingredients (ingredientName) VALUES ".to_owned();
-    //     query.push_str(
-    //         DatabaseManager::ingredients_to_comma_separated_string_with_parens(ingredients)
-    //             .as_str(),
-    //     );
-    //     println!("{}", query);
-    //     self.connection.execute(&query, [])
-    // }
-
-    // pub fn insert_recipe_ingredients(
-    //     &self,
-    //     recipe: &Recipe,
-    //     recipe_id: u32,
-    //     ingredient_name_to_id: &HashMap<String, u32>,
-    // ) -> Option<usize> {
-    //     let ingredients = &recipe.ingredients;
-    //     let mut query =
-    //         "INSERT INTO RecipeIngredients (recipeID, ingredientID, phase, quantity, unit) VALUES "
-    //             .to_owned();
-
-    //     for ingredient in ingredients {
-    //         let ingredient_id = ingredient_name_to_id.get(&ingredient.name)?;
-    //         query.push('(');
-    //         query.push_str(recipe_id.to_string().as_str());
-    //         query.push(',');
-    //         query.push_str(ingredient_id.to_string().as_str());
-    //         query.push(',');
-    //         query.push_str(ingredient.phase.to_string().as_str());
-    //         query.push(',');
-    //         query.push_str(ingredient.quantity.to_string().as_str());
-    //         query.push(',');
-    //         append_as_string(&mut query, &ingredient.unit);
-    //         query.push_str("),");
-    //     }
-    //     if ingredients.len() > 0 {
-    //         query.pop();
-    //     }
-
-    //     match self.connection.execute(&query, []) {
-    //         Ok(num) => Some(num),
-    //         Err(e) => {
-    //             println!("{:?}", e);
-    //             None
-    //         }
-    //     }
-    // }
-
-    // pub fn query_ingredients(&self, ingredients: &[Ingredient]) -> Result<HashMap<String, u32>> {
-    //     let mut query =
-    //         "SELECT ingredientID, ingredientName from Ingredients where ingredientName in ("
-    //             .to_owned();
-    //     query.push_str(
-    //         DatabaseManager::ingredients_to_comma_separated_string(&ingredients).as_str(),
-    //     );
-    //     query.push(')');
-    //     let mut statement = self.connection.prepare(&query)?;
-    //     let iter = statement.query_map([], |row| {
-    //         Ok((row.get::<usize, u32>(0)?, row.get::<usize, String>(1)?))
-    //     })?;
-
-    //     // TODO: reserve properly with some size?
-    //     let mut already_contained_ingredients = HashMap::with_capacity(8);
-    //     for row in iter {
-    //         let actual_row = row?;
-    //         already_contained_ingredients.insert(actual_row.1, actual_row.0);
-    //     }
-    //     Ok(already_contained_ingredients)
-    // }
+        match iter.next() {
+            Some(row) => row,
+            None => Err(Error::QueryReturnedNoRows),
+        }
+    }
 }

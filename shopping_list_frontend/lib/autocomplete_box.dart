@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:numberpicker/numberpicker.dart';
 
 class AutocompleteBox extends StatefulWidget {
   const AutocompleteBox(this._onItemSelectedFunction, {super.key});
 
-  final void Function(String)? _onItemSelectedFunction;
+  final void Function(String, int)? _onItemSelectedFunction;
 
   @override
   State<StatefulWidget> createState() {
@@ -22,11 +23,13 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
 
   final FocusNode _focusNode = FocusNode();
   late TextEditingController _textEditingController;
+  int _quantityToAdd = 1;
 
   void _onItemSelected(String selection) {
-    widget._onItemSelectedFunction!(selection);
+    widget._onItemSelectedFunction!(selection, _quantityToAdd);
     _textEditingController.clear();
     _focusNode.requestFocus();
+    _quantityToAdd = 1;
   }
 
   @override
@@ -58,6 +61,15 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
                   onFieldSubmitted();
                 },
               ),
+            ),
+            NumberPicker(
+              value: _quantityToAdd,
+              minValue: 1,
+              maxValue: 10,
+              itemHeight: 20,
+              selectedTextStyle: const TextStyle(fontSize: 16),
+              textStyle: const TextStyle(fontSize: 8),
+              onChanged: (value) => setState(() => _quantityToAdd = value),
             ),
             IconButton(
                 onPressed: () {

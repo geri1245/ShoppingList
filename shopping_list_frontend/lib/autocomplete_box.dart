@@ -32,6 +32,12 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
     _quantityToAdd = 1;
   }
 
+  void _onCurrentTextAdded() {
+    if (_textEditingController.text.isNotEmpty) {
+      _onItemSelected(_textEditingController.text);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return RawAutocomplete<String>(
@@ -56,9 +62,9 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
             Expanded(
               child: TextFormField(
                 controller: textEditingController,
-                focusNode: focusNode,
+                focusNode: _focusNode,
                 onFieldSubmitted: (String value) {
-                  onFieldSubmitted();
+                  _onCurrentTextAdded();
                 },
               ),
             ),
@@ -72,11 +78,7 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
               onChanged: (value) => setState(() => _quantityToAdd = value),
             ),
             IconButton(
-                onPressed: () {
-                  if (textEditingController.text.isNotEmpty) {
-                    _onItemSelected(textEditingController.text);
-                  }
-                },
+                onPressed: _onCurrentTextAdded,
                 icon: const Icon(
                   Icons.add_circle_outline,
                   color: Colors.lightBlue,

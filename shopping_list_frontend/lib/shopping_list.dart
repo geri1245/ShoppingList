@@ -13,7 +13,6 @@ class ShoppingList extends StatefulWidget {
 
 class _ShoppingListState extends State<ShoppingList> {
   List<ShoppingItem> _items = [];
-  late Future<List<ShoppingItem>> futureItems;
 
   void setItems(List<ShoppingItem> items) {
     setState(() {
@@ -24,8 +23,15 @@ class _ShoppingListState extends State<ShoppingList> {
   @override
   void initState() {
     super.initState();
-    futureItems = fetchItems();
-    futureItems.then((value) => setItems(value), onError: (o) => {});
+    final futureItems = fetchItems();
+    futureItems.then((response) {
+      if (response.isOk()) {
+        setItems(response.data!);
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Connection error 😢")));
+      }
+    }, onError: (error) {});
   }
 
   void _onItemChecked(String itemName) {

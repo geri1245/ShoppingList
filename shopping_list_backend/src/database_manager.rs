@@ -3,10 +3,6 @@
 use rusqlite::types::FromSql;
 use rusqlite::{Connection, Error, Result};
 
-// Recipes(RecipeID, Name, Categories, CookTime, PrepTime)
-// Ingredients(IngredientID, Name, NutritionalData)
-// RecipeIngredients(RecipeID, IngredientID, Phase, Quantity, Unit)
-
 const TABLE_NAME: &'static str = "ShoppingList";
 
 pub struct DatabaseManager {
@@ -17,10 +13,10 @@ pub struct DatabaseManager {
 use crate::ShoppingItem;
 
 impl DatabaseManager {
-    fn create_table(&self) -> Result<()> {
+    fn _create_table(&self) -> Result<()> {
         let table_creation_queries = format!(
             "CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
-                Item            TEXT,
+                Name            TEXT,
                 Quantity        INTEGER,
                 Category        TEXT);"
         );
@@ -34,21 +30,21 @@ impl DatabaseManager {
             _user_name: user_name,
         };
 
-        db_manager.create_table()?;
+        db_manager._create_table()?;
 
         Ok(db_manager)
     }
 
     pub fn get_all(&self) -> Result<Vec<ShoppingItem>> {
-        let query = format!("Select * from {TABLE_NAME}");
+        let query = format!("Select * from {TABLE_NAME};");
         let mut statement = self.connection.prepare(&query)?;
 
         let items = statement
             .query_map([], |row| {
                 Ok(ShoppingItem {
-                    category: "default".to_owned(),
                     name: row.get(0)?,
                     quantity: row.get(1)?,
+                    category: row.get(2)?,
                 })
             })?
             .filter_map(|result_item| result_item.ok())
@@ -57,15 +53,15 @@ impl DatabaseManager {
         Ok(items)
     }
 
-    pub fn get_where(&self, name: &String) -> Result<ShoppingItem> {
-        let query = format!("Select * from {TABLE_NAME} WHERE Item=?1");
+    pub fn get_where(&self, name: &String, category: &String) -> Result<ShoppingItem> {
+        let query = format!("Select * from {TABLE_NAME} WHERE Name=?1 AND Category=?2;");
         let mut statement = self.connection.prepare(&query)?;
 
-        let mut iter = statement.query_map([&name], |row| {
+        let mut iter = statement.query_map(&[&name, &category], |row| {
             Ok(ShoppingItem {
-                category: "default".to_owned(),
                 name: row.get(0)?,
                 quantity: row.get(1)?,
+                category: row.get(2)?,
             })
         })?;
 
@@ -78,8 +74,8 @@ impl DatabaseManager {
         }
     }
 
-    pub fn contains(&self, name: &String) -> Result<bool> {
-        match self.get_where(name) {
+    pub fn contains(&self, name: &String, category: &String) -> Result<bool> {
+        match self.get_where(name, category) {
             Ok(_) => Ok(true),
             Err(error) => {
                 if error == Error::QueryReturnedNoRows {
@@ -92,16 +88,20 @@ impl DatabaseManager {
     }
 
     pub fn add_item(&self, item: &ShoppingItem) -> Result<()> {
-        let query = format!("INSERT INTO {TABLE_NAME} (Item, Quantity) VALUES (?1, ?2)");
-        self.connection
-            .execute(&query, &[&item.name, &item.quantity.to_string()])?;
+        let query =
+            format!("INSERT INTO {TABLE_NAME} (Name, Quantity, Category) VALUES (?1, ?2, ?3);");
+        self.connection.execute(
+            &query,
+            &[&item.name, &item.quantity.to_string(), &item.category],
+        )?;
 
         Ok(())
     }
 
     pub fn delete_item(&self, item: &ShoppingItem) -> Result<()> {
-        let query = format!("DELETE FROM {TABLE_NAME} WHERE Item=?1");
-        self.connection.execute(&query, &[&item.name])?;
+        let query = format!("DELETE FROM {TABLE_NAME} WHERE Name=?1 AND Category=?2;");
+        self.connection
+            .execute(&query, &[&item.name, &item.category])?;
 
         Ok(())
     }

@@ -81,9 +81,9 @@ async fn delete_item_handler(
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ShoppingItem {
-    category: String,
     name: String,
     quantity: u32,
+    category: String,
 }
 
 #[derive(Clone)]

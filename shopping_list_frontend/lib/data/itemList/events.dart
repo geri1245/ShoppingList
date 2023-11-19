@@ -14,11 +14,7 @@ final class ItemAddedEvent extends ItemListEvent {
   final ShoppingItem item;
 }
 
-final class AllItemsUpdatedEvent extends ItemListEvent {
-  const AllItemsUpdatedEvent(this.items);
-
-  final ItemCategoryMap items;
-}
+final class UpdateAllItemsEvent extends ItemListEvent {}
 
 final class ItemRemovedEvent extends ItemListEvent {
   const ItemRemovedEvent(this.item);

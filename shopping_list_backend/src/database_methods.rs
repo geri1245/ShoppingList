@@ -7,7 +7,7 @@ pub async fn add_item(
     item: &ShoppingItem,
 ) -> anyhow::Result<bool> {
     let db_manager = db_manager.lock().unwrap();
-    if !db_manager.contains(&item.name)? {
+    if !db_manager.contains(&item.name, &item.category)? {
         db_manager.add_item(item)?;
         return Ok(true);
     } else {

@@ -9,6 +9,7 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
   ItemListBloc() : super(ItemListState(items: {}, status: ItemListStatus.ok)) {
     on<ItemAddedEvent>(_onItemAdded);
     on<ItemRemovedEvent>(_onItemCompleted);
+    on<UpdateAllItemsEvent>(_updateAlItems);
   }
 
   Future<void> _onItemAdded(
@@ -37,5 +38,16 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
     }
 
     emit(newState);
+  }
+
+  Future<void> _updateAlItems(
+    UpdateAllItemsEvent event,
+    Emitter<ItemListState> emit,
+  ) async {
+    final result = await fetchItems();
+
+    if (result.statusCode == 200) {
+      emit(ItemListState(items: result.data!, status: ItemListStatus.ok));
+    }
   }
 }

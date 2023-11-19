@@ -10,9 +10,9 @@ class ShoppingItem extends Equatable {
 
   factory ShoppingItem.fromJson(Map<String, dynamic> json) {
     return ShoppingItem(
-      category: json['category'] as String,
       itemName: json['name'] as String,
       count: json['quantity'] as int,
+      category: json['category'] as String,
     );
   }
 

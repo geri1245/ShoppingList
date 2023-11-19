@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:shopping_list_frontend/shopping_item.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shopping_list_frontend/data/itemList/events.dart';
+import 'package:shopping_list_frontend/data/itemList/item_list_bloc.dart';
+import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
 
 class ShoppingItemCategory extends StatelessWidget {
   const ShoppingItemCategory(
-      {required this.categoryName,
-      required this.items,
-      required this.onItemCheckedFunction,
-      super.key});
+      {required this.categoryName, required this.items, super.key});
 
   final String categoryName;
   final List<ShoppingItem> items;
-  final void Function(ShoppingItem item) onItemCheckedFunction;
+
+  void _onItemChecked(BuildContext context, ShoppingItem item) {
+    context.read<ItemListBloc>().add(ItemRemovedEvent(item));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +41,7 @@ class ShoppingItemCategory extends StatelessWidget {
                   flex: 1,
                   child: IconButton(
                       onPressed: () {
-                        onItemCheckedFunction(currentItem);
+                        _onItemChecked(context, currentItem);
                       },
                       icon: const Icon(
                         Icons.check_circle_outline,

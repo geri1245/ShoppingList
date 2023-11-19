@@ -1,7 +1,7 @@
-import 'package:shopping_list_frontend/item_list_cubit.dart';
-import 'package:shopping_list_frontend/shopping_item.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
 
 const backendUrl = 'http://localhost:3000';
 const serverTimeout = Duration(seconds: 2);

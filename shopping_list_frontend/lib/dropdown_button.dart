@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shopping_list_frontend/data/autoCompleteBox/auto_complete_box_cubit.dart';
 
 class CategoryDropdownButton extends StatefulWidget {
-  const CategoryDropdownButton({required this.categories, super.key});
+  const CategoryDropdownButton(
+      {required this.categories, required this.selectedCategory, super.key});
 
   final List<String> categories;
+  final String selectedCategory;
 
   @override
   State<CategoryDropdownButton> createState() => _DropdownButtonState();
@@ -11,28 +15,20 @@ class CategoryDropdownButton extends StatefulWidget {
 
 class _DropdownButtonState extends State<CategoryDropdownButton> {
   @override
-  void initState() {
-    super.initState();
-    selectedCategory = widget.categories.first;
-  }
-
-  late String selectedCategory;
-
-  @override
   Widget build(BuildContext context) {
     return DropdownButton<String>(
-      value: selectedCategory,
-      icon: const Icon(Icons.arrow_downward),
+      padding: const EdgeInsets.all(4),
+      value: widget.selectedCategory,
       elevation: 16,
-      style: const TextStyle(color: Colors.deepPurple),
-      underline: Container(
-        height: 2,
-        color: Colors.deepPurpleAccent,
-      ),
+      dropdownColor: Colors.white,
+      focusColor: Colors.white,
+      // style: const TextStyle(color: Colors.deepPurple),
+      // underline: Container(
+      //   height: 2,
+      //   color: Colors.deepPurpleAccent,
+      // ),
       onChanged: (String? value) {
-        setState(() {
-          selectedCategory = value!;
-        });
+        context.read<AutoCompleteBoxCubit>().setCategory(value ?? "");
       },
       items: widget.categories.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(

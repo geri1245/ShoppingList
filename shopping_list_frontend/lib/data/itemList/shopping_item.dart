@@ -1,0 +1,59 @@
+import 'package:equatable/equatable.dart';
+
+class ShoppingItem extends Equatable {
+  const ShoppingItem(
+      {required this.category, required this.itemName, required this.count});
+
+  final String category;
+  final String itemName;
+  final int count;
+
+  factory ShoppingItem.fromJson(Map<String, dynamic> json) {
+    return ShoppingItem(
+      category: json['category'] as String,
+      itemName: json['name'] as String,
+      count: json['quantity'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {"name": itemName, "quantity": count, "category": category};
+  }
+
+  @override
+  List<Object> get props => [category, itemName];
+}
+
+typedef ItemCategoryMap = Map<String, List<ShoppingItem>>;
+
+bool addToMap(ItemCategoryMap map, ShoppingItem item) {
+  if (!map.containsKey(item.category)) {
+    map[item.category] = [item];
+    return true;
+  }
+
+  if (!(map[item.category]?.contains(item) ?? true)) {
+    map[item.category]?.add(item);
+    return true;
+  }
+
+  return false;
+}
+
+bool removeFromMap(ItemCategoryMap map, ShoppingItem item) {
+  if (map.containsKey(item.category)) {
+    return map[item.category]?.remove(item) ?? false;
+  }
+
+  return false;
+}
+
+ItemCategoryMap itemListToItemMap(List<ShoppingItem> items) {
+  ItemCategoryMap retVal = {};
+
+  for (var item in items) {
+    addToMap(retVal, item);
+  }
+
+  return retVal;
+}

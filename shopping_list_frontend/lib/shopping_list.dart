@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shopping_list_frontend/autocomplete_box.dart';
 import 'package:shopping_list_frontend/http_requests.dart';
+import 'package:shopping_list_frontend/item_list_cubit.dart';
 import 'package:shopping_list_frontend/shopping_item.dart';
 import 'package:shopping_list_frontend/shopping_item_list.dart';
 
@@ -12,9 +13,9 @@ class ShoppingList extends StatefulWidget {
 }
 
 class _ShoppingListState extends State<ShoppingList> {
-  List<ShoppingItem> _items = [];
+  ItemCategoryMap _items = {};
 
-  void setItems(List<ShoppingItem> items) {
+  void setItems(ItemCategoryMap items) {
     setState(() {
       _items = items;
     });
@@ -34,18 +35,20 @@ class _ShoppingListState extends State<ShoppingList> {
     }, onError: (error) {});
   }
 
-  void _onItemChecked(String itemName) {
+  void _onItemChecked(ShoppingItem item) {
     setState(() {
-      _items.removeWhere((shoppingItem) => shoppingItem.itemName == itemName);
+      if (_items.containsKey(item.category)) {
+        _items[item.category]?.remove(item);
+      }
     });
 
-    removeItem(ShoppingItem(itemName: itemName, count: 0));
+    removeItem(
+        ShoppingItem(category: "default", itemName: item.itemName, count: 0));
   }
 
-  void _onItemAdded(String name, int quantity) {
-    var itemToAdd = ShoppingItem(itemName: name, count: quantity);
+  void _onItemAdded(ShoppingItem itemToAdd) {
     setState(() {
-      _items.add(itemToAdd);
+      addToMap(_items, itemToAdd);
     });
 
     addItem(itemToAdd);
@@ -53,14 +56,12 @@ class _ShoppingListState extends State<ShoppingList> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          AutocompleteBox(_onItemAdded),
-          ShoppingItemList(_items, _onItemChecked),
-        ],
-      ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget>[
+        AutocompleteBox(_onItemAdded),
+        ShoppingItemList(items: _items, onItemCheckedFunction: _onItemChecked)
+      ],
     );
   }
 }

@@ -17,11 +17,12 @@ pub struct DatabaseManager {
 use crate::ShoppingItem;
 
 impl DatabaseManager {
-    fn _create_table(&self) -> Result<()> {
+    fn create_table(&self) -> Result<()> {
         let table_creation_queries = format!(
             "CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
-                      Item            TEXT,
-                      Quantity        INTEGER);"
+                Item            TEXT,
+                Quantity        INTEGER,
+                Category        TEXT);"
         );
         self.connection.execute_batch(&table_creation_queries)
     }
@@ -32,7 +33,9 @@ impl DatabaseManager {
             connection: conn,
             _user_name: user_name,
         };
-        // db_manager.create_tables()?;
+
+        db_manager.create_table()?;
+
         Ok(db_manager)
     }
 
@@ -43,6 +46,7 @@ impl DatabaseManager {
         let items = statement
             .query_map([], |row| {
                 Ok(ShoppingItem {
+                    category: "default".to_owned(),
                     name: row.get(0)?,
                     quantity: row.get(1)?,
                 })
@@ -53,20 +57,37 @@ impl DatabaseManager {
         Ok(items)
     }
 
-    pub fn get_where(&self, name: String) -> Result<ShoppingItem> {
+    pub fn get_where(&self, name: &String) -> Result<ShoppingItem> {
         let query = format!("Select * from {TABLE_NAME} WHERE Item=?1");
         let mut statement = self.connection.prepare(&query)?;
 
-        let mut iter = statement.query_map([], |row| Ok(row.get(0)?))?;
+        let mut iter = statement.query_map([&name], |row| {
+            Ok(ShoppingItem {
+                category: "default".to_owned(),
+                name: row.get(0)?,
+                quantity: row.get(1)?,
+            })
+        })?;
 
         match iter.next() {
-            Some(row) => {
-                return Ok(ShoppingItem {
-                    name,
-                    quantity: row.unwrap(),
-                });
-            }
+            Some(row) => match row {
+                Ok(item) => Ok(item),
+                Err(_) => Err(Error::ExecuteReturnedResults),
+            },
             None => Err(Error::QueryReturnedNoRows),
+        }
+    }
+
+    pub fn contains(&self, name: &String) -> Result<bool> {
+        match self.get_where(name) {
+            Ok(_) => Ok(true),
+            Err(error) => {
+                if error == Error::QueryReturnedNoRows {
+                    Ok(false)
+                } else {
+                    Err(error)
+                }
+            }
         }
     }
 

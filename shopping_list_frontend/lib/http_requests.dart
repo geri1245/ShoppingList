@@ -1,3 +1,4 @@
+import 'package:shopping_list_frontend/item_list_cubit.dart';
 import 'package:shopping_list_frontend/shopping_item.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -17,17 +18,17 @@ class RequestResult<T> {
   final T? data;
 }
 
-Future<RequestResult<List<ShoppingItem>>> fetchItems() async {
+Future<RequestResult<ItemCategoryMap>> fetchItems() async {
   try {
-    final response = await http.get(Uri.parse('$backendUrl/get_items')).timeout(
-        serverTimeout,
-        onTimeout: () => throw Exception(
-            "Failed to reach the server within $serverTimeout"));
+    final response = await http
+        .get(Uri.parse('$backendUrl/get_items'))
+        .timeout(serverTimeout);
 
     if (response.statusCode == 200) {
       List items = jsonDecode(response.body) as List;
-      var decodedItems = items.map((e) => ShoppingItem.fromJson(e)).toList();
-      return RequestResult(statusCode: response.statusCode, data: decodedItems);
+      final decodedItems = items.map((e) => ShoppingItem.fromJson(e)).toList();
+      final itemsMap = itemListToItemMap(decodedItems);
+      return RequestResult(statusCode: response.statusCode, data: itemsMap);
     } else {
       return RequestResult(
           statusCode: response.statusCode, errorMessage: response.body);

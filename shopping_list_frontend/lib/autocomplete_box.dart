@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
+import 'package:shopping_list_frontend/dropdown_button.dart';
+import 'package:shopping_list_frontend/shopping_item.dart';
 
 class AutocompleteBox extends StatefulWidget {
   const AutocompleteBox(this._onItemSelectedFunction, {super.key});
 
-  final void Function(String, int)? _onItemSelectedFunction;
+  final void Function(ShoppingItem)? _onItemSelectedFunction;
 
   @override
   State<StatefulWidget> createState() {
@@ -21,12 +23,18 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
     'kifli',
   ];
 
+  static const List<String> _categories = <String>[
+    'Default',
+    'Shopping',
+  ];
+
   final FocusNode _focusNode = FocusNode();
   late TextEditingController _textEditingController;
   int _quantityToAdd = 1;
 
   void _onItemSelected(String selection) {
-    widget._onItemSelectedFunction!(selection, _quantityToAdd);
+    widget._onItemSelectedFunction!(ShoppingItem(
+        category: "Default", itemName: selection, count: _quantityToAdd));
     _textEditingController.clear();
     _focusNode.requestFocus();
     _quantityToAdd = 1;
@@ -68,6 +76,7 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
                 },
               ),
             ),
+            const CategoryDropdownButton(categories: _categories),
             NumberPicker(
               value: _quantityToAdd,
               minValue: 1,

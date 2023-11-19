@@ -32,11 +32,6 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
     'kifli',
   ];
 
-  static const List<String> _categories = <String>[
-    'Default',
-    'Shopping',
-  ];
-
   final FocusNode _focusNode = FocusNode();
   late TextEditingController _textEditingController;
 
@@ -94,16 +89,17 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
                 ),
                 BlocBuilder<AutoCompleteBoxCubit, ItemAutoCompleteBoxState>(
                   builder: (context, state) => CategoryDropdownButton(
-                    categories: _categories,
+                    categories: state.categories,
                     selectedCategory: state.category,
                   ),
                 ),
                 IconButton(
-                    onPressed: () => _onCurrentTextAdded(context),
-                    icon: const Icon(
-                      Icons.add_circle_outline,
-                      color: Colors.lightBlue,
-                    ))
+                  onPressed: () => _onCurrentTextAdded(context),
+                  icon: const Icon(
+                    Icons.add_circle_outline,
+                    color: Colors.lightBlue,
+                  ),
+                )
               ]),
             );
           },

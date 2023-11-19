@@ -1,40 +1,40 @@
 import 'package:flutter/material.dart';
 
-class DialogExample extends StatelessWidget {
-  const DialogExample({super.key});
+Future<String?> getTextInputWithDialog(BuildContext context) {
+  final controller = TextEditingController();
+  final textField = TextField(controller: controller, autofocus: true);
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        TextButton(
-          onPressed: () => showDialog<String>(
-            context: context,
-            builder: (BuildContext context) => Dialog(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    const TextField(),
-                    const Text('This is a typical dialog.'),
-                    const SizedBox(height: 15),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Close'),
-                    ),
-                  ],
-                ),
+  return showDialog<String>(
+    context: context,
+    builder: (BuildContext context) => Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            textField,
+            const SizedBox(height: 15),
+            Row(children: [
+              TextButton(
+                onPressed: () {
+                  final text = controller.text;
+                  controller.dispose();
+                  Navigator.pop(context, text);
+                },
+                child: const Text('Add'),
               ),
-            ),
-          ),
-          child: const Text('Show Dialog'),
+              TextButton(
+                onPressed: () {
+                  controller.dispose();
+                  Navigator.pop(context);
+                },
+                child: const Text('Cancel'),
+              ),
+            ]),
+          ],
         ),
-      ],
-    );
-  }
+      ),
+    ),
+  );
 }

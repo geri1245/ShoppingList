@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:shopping_list_frontend/data/autoCompleteBox/auto_complete_box_cubit.dart';
@@ -32,7 +33,7 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
     'kifli',
   ];
 
-  final FocusNode _focusNode = FocusNode();
+  late FocusNode _focusNode;
   late TextEditingController _textEditingController;
 
   void _onItemSelected(BuildContext context, String selection) {
@@ -57,94 +58,147 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
-      child: Column(children: [
-        RawAutocomplete<String>(
-          optionsBuilder: (TextEditingValue textEditingValue) {
-            if (textEditingValue.text == '') {
-              return const Iterable<String>.empty();
-            }
-            return _kOptions.where((String option) {
-              return option.contains(textEditingValue.text.toLowerCase());
-            });
-          },
-          fieldViewBuilder: (
-            BuildContext context,
-            TextEditingController textEditingController,
-            FocusNode focusNode,
-            VoidCallback onFieldSubmitted,
-          ) {
-            _textEditingController = textEditingController;
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(children: [
-                Expanded(
-                  child: TextFormField(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Row(children: [
+            Expanded(
+              flex: 12,
+              child: Autocomplete(
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text == '') {
+                    return const Iterable<String>.empty();
+                  }
+                  return _kOptions.where((String option) {
+                    return option.contains(textEditingValue.text.toLowerCase());
+                  });
+                },
+                fieldViewBuilder: (context, textEditingController, focusNode,
+                    onFieldSubmitted) {
+                  _textEditingController = textEditingController;
+                  _focusNode = focusNode;
+
+                  return TextFormField(
                     controller: textEditingController,
-                    focusNode: _focusNode,
+                    focusNode: focusNode,
                     onFieldSubmitted: (String value) {
                       _onCurrentTextAdded(context);
                     },
-                  ),
-                ),
-                BlocBuilder<AutoCompleteBoxCubit, ItemAutoCompleteBoxState>(
-                  builder: (context, state) => CategoryDropdownButton(
-                    categories: state.categories,
-                    selectedCategory: state.category,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => _onCurrentTextAdded(context),
-                  icon: const Icon(
-                    Icons.add_circle_outline,
-                    color: Colors.lightBlue,
-                  ),
-                )
-              ]),
-            );
-          },
-          onSelected: (selectedItem) => _onItemSelected(context, selectedItem),
-          optionsViewBuilder: (
-            BuildContext context,
-            AutocompleteOnSelected<String> onSelected,
-            Iterable<String> options,
-          ) {
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Material(
-                elevation: 4.0,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.all(8.0),
-                  itemCount: options.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final String option = options.elementAt(index);
-                    return GestureDetector(
-                      onTap: () {
-                        onSelected(option);
-                      },
-                      child: ListTile(
-                        title: Text(option),
-                      ),
-                    );
-                  },
+                  );
+                },
+                onSelected: (selectedItem) =>
+                    _onItemSelected(context, selectedItem),
+              ),
+            ),
+            Expanded(
+              flex: 8,
+              child:
+                  BlocBuilder<AutoCompleteBoxCubit, ItemAutoCompleteBoxState>(
+                builder: (context, state) => CategoryDropdownButton(
+                  categories: state.categories,
+                  selectedCategory: state.category,
                 ),
               ),
-            );
-          },
-        ),
-        NumberPicker(
-          axis: Axis.horizontal,
-          value: context.read<AutoCompleteBoxCubit>().quantity,
-          minValue: 1,
-          maxValue: 10,
-          itemHeight: 20,
-          selectedTextStyle: const TextStyle(fontSize: 16),
-          textStyle: const TextStyle(fontSize: 8),
-          onChanged: (value) =>
-              context.read<AutoCompleteBoxCubit>().setQuantity(value),
-        ),
-      ]),
+            ),
+            Expanded(
+              flex: 2,
+              child: NumberPicker(
+                axis: Axis.vertical,
+                value: context.read<AutoCompleteBoxCubit>().quantity,
+                minValue: 1,
+                maxValue: 10,
+                itemHeight: 20,
+                selectedTextStyle: const TextStyle(fontSize: 16),
+                textStyle: const TextStyle(fontSize: 8),
+                onChanged: (value) =>
+                    context.read<AutoCompleteBoxCubit>().setQuantity(value),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: IconButton(
+                onPressed: () => _onCurrentTextAdded(context),
+                icon: const Icon(
+                  Icons.add_circle_outline,
+                  color: Colors.lightBlue,
+                ),
+              ),
+            )
+          ]),
+        ],
+      ),
     );
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Padding(
+  //     padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+  //     child: Column(children: [
+  //       RawAutocomplete<String>(
+  //         optionsBuilder: (TextEditingValue textEditingValue) {
+  //           if (textEditingValue.text == '') {
+  //             return const Iterable<String>.empty();
+  //           }
+  //           return _kOptions.where((String option) {
+  //             return option.contains(textEditingValue.text.toLowerCase());
+  //           });
+  //         },
+  //         displayStringForOption: (option) => option,
+  //         fieldViewBuilder: (
+  //           BuildContext context,
+  //           TextEditingController textEditingController,
+  //           FocusNode focusNode,
+  //           VoidCallback onFieldSubmitted,
+  //         ) {
+  //           _textEditingController = textEditingController;
+  //           return Padding(
+  //             padding: const EdgeInsets.all(16),
+  //             child: Row(children: [
+  //               Expanded(
+  //                 child: TextFormField(
+  //                   controller: textEditingController,
+  //                   focusNode: _focusNode,
+  //                   onFieldSubmitted: (String value) {
+  //                     _onCurrentTextAdded(context);
+  //                   },
+  //                 ),
+  //               ),
+  //             ]),
+  //           );
+  //         },
+  //         onSelected: (selectedItem) => _onItemSelected(context, selectedItem),
+  //         optionsViewBuilder: (
+  //           BuildContext context,
+  //           AutocompleteOnSelected<String> onSelected,
+  //           Iterable<String> options,
+  //         ) {
+  //           return Align(
+  //             alignment: Alignment.topLeft,
+  //             child: Material(
+  //               elevation: 4.0,
+  //               child: ListView.builder(
+  //                 shrinkWrap: true,
+  //                 padding: const EdgeInsets.all(8.0),
+  //                 itemCount: options.length,
+  //                 itemBuilder: (BuildContext context, int index) {
+  //                   final String option = options.elementAt(index);
+  //                   return GestureDetector(
+  //                     onTap: () {
+  //                       onSelected(option);
+  //                     },
+  //                     child: ListTile(
+  //                       title: Text(option),
+  //                     ),
+  //                   );
+  //                 },
+  //               ),
+  //             ),
+  //           );
+  //         },
+  //       ),
+  //
+  //     ]),
+  //   );
+  // }
 }

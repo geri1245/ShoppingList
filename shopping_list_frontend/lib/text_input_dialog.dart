@@ -18,9 +18,9 @@ Future<String?> getTextInputWithDialog(BuildContext context) {
             Row(children: [
               TextButton(
                 onPressed: () {
-                  final text = controller.text;
-                  controller.dispose();
+                  final text = controller.text.trim();
                   Navigator.pop(context, text);
+                  // controller.dispose();
                 },
                 child: const Text('Add'),
               ),

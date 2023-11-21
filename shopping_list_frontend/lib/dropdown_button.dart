@@ -29,15 +29,13 @@ class _DropdownButtonState extends State<CategoryDropdownButton> {
 
     return DropdownButton<String>(
       padding: const EdgeInsets.all(4),
+      isExpanded: true,
       value: widget.selectedCategory,
       elevation: 16,
       dropdownColor: Colors.white,
       focusColor: Colors.white,
-      // style: const TextStyle(color: Colors.deepPurple),
-      // underline: Container(
-      //   height: 2,
-      //   color: Colors.deepPurpleAccent,
-      // ),
+      style: const TextStyle(
+          color: Colors.deepPurple, overflow: TextOverflow.ellipsis),
       onChanged: (String? selectedItem) {
         if (selectedItem == addNewItemString) {
           getTextInputWithDialog(context).then((newCategoryName) {

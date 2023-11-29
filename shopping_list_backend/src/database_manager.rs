@@ -1,7 +1,13 @@
 // use crate::string_utils::{add_to_string_with_wrapping_characters, append_as_string};
 
+use anyhow::anyhow;
 use rusqlite::types::FromSql;
 use rusqlite::{Connection, Error, Result};
+
+pub enum QueryResult<T> {
+    Ok(T),
+    NoRowsReturned,
+}
 
 const TABLE_NAME: &'static str = "ShoppingList";
 
@@ -42,9 +48,9 @@ impl DatabaseManager {
         let items = statement
             .query_map([], |row| {
                 Ok(ShoppingItem {
-                    name: row.get(0)?,
-                    quantity: row.get(1)?,
-                    category: row.get(2)?,
+                    name: row.get("Name")?,
+                    quantity: row.get("Quantity")?,
+                    category: row.get("Category")?,
                 })
             })?
             .filter_map(|result_item| result_item.ok())
@@ -53,41 +59,51 @@ impl DatabaseManager {
         Ok(items)
     }
 
-    pub fn get_where(&self, name: &String, category: &String) -> Result<ShoppingItem> {
+    pub fn get_where(
+        &self,
+        name: &String,
+        category: &String,
+    ) -> anyhow::Result<QueryResult<ShoppingItem>> {
         let query = format!("Select * from {TABLE_NAME} WHERE Name=?1 AND Category=?2;");
         let mut statement = self.connection.prepare(&query)?;
 
-        let mut iter = statement.query_map(&[&name, &category], |row| {
+        let mut iter = statement.query_map(&[name, category], |row| {
             Ok(ShoppingItem {
-                name: row.get(0)?,
-                quantity: row.get(1)?,
-                category: row.get(2)?,
+                name: row.get("Name")?,
+                quantity: row.get("Quantity")?,
+                category: row.get("Category")?,
             })
         })?;
 
         match iter.next() {
             Some(row) => match row {
-                Ok(item) => Ok(item),
-                Err(_) => Err(Error::ExecuteReturnedResults),
+                Ok(item) => Ok(QueryResult::Ok(item)),
+                Err(error) => Err(anyhow!(error)),
             },
-            None => Err(Error::QueryReturnedNoRows),
+            None => Ok(QueryResult::NoRowsReturned),
         }
     }
 
-    pub fn contains(&self, name: &String, category: &String) -> Result<bool> {
+    pub fn contains(&self, name: &String, category: &String) -> anyhow::Result<bool> {
         match self.get_where(name, category) {
-            Ok(_) => Ok(true),
-            Err(error) => {
-                if error == Error::QueryReturnedNoRows {
-                    Ok(false)
-                } else {
-                    Err(error)
-                }
-            }
+            Ok(QueryResult::Ok(_)) => Ok(true),
+            Ok(QueryResult::NoRowsReturned) => Ok(false),
+            Err(error) => Err(anyhow!(error)),
         }
     }
 
-    pub fn add_item(&self, item: &ShoppingItem) -> Result<()> {
+    pub fn add_item_if_not_present(&self, item: &ShoppingItem) -> bool {
+        match self.contains(&item.name, &item.category) {
+            Ok(true) => false,
+            Ok(false) => match self.add_item(item) {
+                Ok(_) => true,
+                Err(_) => false,
+            },
+            Err(_) => false,
+        }
+    }
+
+    pub fn add_item(&self, item: &ShoppingItem) -> anyhow::Result<()> {
         let query =
             format!("INSERT INTO {TABLE_NAME} (Name, Quantity, Category) VALUES (?1, ?2, ?3);");
         self.connection.execute(
@@ -98,7 +114,7 @@ impl DatabaseManager {
         Ok(())
     }
 
-    pub fn delete_item(&self, item: &ShoppingItem) -> Result<()> {
+    pub fn delete_item(&self, item: &ShoppingItem) -> anyhow::Result<()> {
         let query = format!("DELETE FROM {TABLE_NAME} WHERE Name=?1 AND Category=?2;");
         self.connection
             .execute(&query, &[&item.name, &item.category])?;

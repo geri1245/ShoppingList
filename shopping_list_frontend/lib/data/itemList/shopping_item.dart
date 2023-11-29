@@ -42,7 +42,14 @@ bool addToMap(ItemCategoryMap map, ShoppingItem item) {
 
 bool removeFromMap(ItemCategoryMap map, ShoppingItem item) {
   if (map.containsKey(item.category)) {
-    return map[item.category]?.remove(item) ?? false;
+    if (map[item.category]?.remove(item) ?? false) {
+      // See if this was our last item in the current category, then remove the category
+      if (map[item.category]!.isEmpty) {
+        map.remove(item.category);
+      }
+
+      return true;
+    }
   }
 
   return false;

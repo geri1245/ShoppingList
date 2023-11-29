@@ -7,7 +7,7 @@ use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
-use database_methods::add_item;
+use database_methods::{add_item, remove_item};
 use serde::{Deserialize, Serialize};
 use std::{
     net::SocketAddr,
@@ -31,12 +31,10 @@ async fn main() -> anyhow::Result<()> {
         .route("/delete_item", post(delete_item_handler))
         .layer(Extension(app_state));
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    tracing::debug!("listening on {}", addr);
-    axum::Server::bind(&addr)
-        .serve(router.into_make_service())
-        .await
-        .unwrap();
+    let address = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let listener = tokio::net::TcpListener::bind(address).await.unwrap();
+    tracing::debug!("listening on {}", address);
+    axum::serve(listener, router).await.unwrap();
 
     Ok(())
 }
@@ -48,19 +46,11 @@ async fn get_list_handler(state: Extension<Arc<AppState>>) -> Json<Vec<ShoppingI
 async fn add_item_handler(
     state: Extension<Arc<AppState>>,
     Json(payload): Json<ShoppingItem>,
-) -> (StatusCode, Json<String>) {
-    match add_item(&state.0.db_manager, &payload).await {
-        Ok(added_successfully) => {
-            if added_successfully {
-                (StatusCode::OK, Json("".to_owned()))
-            } else {
-                (
-                    StatusCode::NOT_ACCEPTABLE,
-                    Json("Can't add item that is already in the database".to_owned()),
-                )
-            }
-        }
-        Err(error) => (StatusCode::NOT_MODIFIED, Json(error.to_string())),
+) -> (StatusCode, Json<()>) {
+    if add_item(&state.0.db_manager, &payload).await {
+        (StatusCode::OK, Json(()))
+    } else {
+        (StatusCode::CONFLICT, Json(()))
     }
 }
 
@@ -68,15 +58,11 @@ async fn delete_item_handler(
     state: Extension<Arc<AppState>>,
     Json(payload): Json<ShoppingItem>,
 ) -> (StatusCode, Json<()>) {
-    state
-        .0
-        .db_manager
-        .lock()
-        .unwrap()
-        .delete_item(&payload)
-        .unwrap();
-
-    (StatusCode::OK, Json(()))
+    if remove_item(&state.0.db_manager, &payload).await {
+        (StatusCode::OK, Json(()))
+    } else {
+        (StatusCode::CONFLICT, Json(()))
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

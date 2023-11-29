@@ -2,15 +2,14 @@ use std::sync::{Arc, Mutex};
 
 use crate::{database_manager::DatabaseManager, ShoppingItem};
 
-pub async fn add_item(
-    db_manager: &Arc<Mutex<DatabaseManager>>,
-    item: &ShoppingItem,
-) -> anyhow::Result<bool> {
+pub async fn add_item(db_manager: &Arc<Mutex<DatabaseManager>>, item: &ShoppingItem) -> bool {
     let db_manager = db_manager.lock().unwrap();
-    if !db_manager.contains(&item.name, &item.category)? {
-        db_manager.add_item(item)?;
-        return Ok(true);
-    } else {
-        return Ok(false);
-    }
+
+    return db_manager.add_item_if_not_present(&item);
+}
+
+pub async fn remove_item(db_manager: &Arc<Mutex<DatabaseManager>>, item: &ShoppingItem) -> bool {
+    let db_manager = db_manager.lock().unwrap();
+
+    db_manager.delete_item(item).is_ok()
 }

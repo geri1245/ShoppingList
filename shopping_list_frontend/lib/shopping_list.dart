@@ -32,7 +32,9 @@ class _ShoppingListState extends State<ShoppingList> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               const ItemAutoComplete(),
-              ShoppingItemList(items: state.items),
+              Expanded(
+                child: ShoppingItemList(items: state.items),
+              )
             ],
           ),
         ),

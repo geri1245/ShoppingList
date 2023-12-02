@@ -35,14 +35,14 @@ impl DatabaseManager {
     fn create_tables(&self) -> Result<()> {
         let table_creation_queries = format!(
             "CREATE TABLE IF NOT EXISTS {ITEMS_TABLE_NAME} (
-                Name            TEXT,
+                Name            TEXT COLLATE NOCASE,
                 Quantity        INTEGER,
-                Category        TEXT,
+                Category        TEXT COLLATE NOCASE,
                 primary key (Name, Category)
             );
              CREATE TABLE IF NOT EXISTS {ITEMS_SEEN_TABLE_NAME} (
-                Category        TEXT,
-                Name            TEXT,
+                Category        TEXT COLLATE NOCASE,
+                Name            TEXT COLLATE NOCASE,
                 Date            TEXT,
                 primary key (Name, Category)
             );"

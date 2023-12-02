@@ -15,23 +15,26 @@ Future<String?> getTextInputWithDialog(BuildContext context) {
           children: <Widget>[
             textField,
             const SizedBox(height: 15),
-            Row(children: [
-              TextButton(
-                onPressed: () {
-                  final text = controller.text.trim();
-                  Navigator.pop(context, text);
-                  // controller.dispose();
-                },
-                child: const Text('Add'),
-              ),
-              TextButton(
-                onPressed: () {
-                  controller.dispose();
-                  Navigator.pop(context);
-                },
-                child: const Text('Cancel'),
-              ),
-            ]),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    final text = controller.text.trim();
+                    Navigator.pop(context, text);
+                    // controller.dispose();
+                  },
+                  child: const Text('Add'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    controller.dispose();
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
           ],
         ),
       ),

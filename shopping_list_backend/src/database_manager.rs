@@ -2,14 +2,27 @@
 
 use anyhow::anyhow;
 use rusqlite::types::FromSql;
-use rusqlite::{Connection, Error, Result};
+use rusqlite::{Connection, Error, Result, Row};
+
+const ITEMS_TABLE_NAME: &'static str = "ShoppingList";
+const ITEMS_SEEN_TABLE_NAME: &'static str = "ItemsSeen";
 
 pub enum QueryResult<T> {
     Ok(T),
     NoRowsReturned,
 }
 
-const TABLE_NAME: &'static str = "ShoppingList";
+// pub enum Table {
+//     Items,
+//     ItemsSeen,
+// }
+
+// pub const fn table_to_table_name(table: Table) -> &'static str {
+//     match table {
+//         Table::Items => ITEMS_TABLE_NAME,
+//         Table::ItemsSeen => ITEMS_SEEN_TABLE_NAME,
+//     }
+// }
 
 pub struct DatabaseManager {
     connection: Connection,
@@ -19,12 +32,16 @@ pub struct DatabaseManager {
 use crate::ShoppingItem;
 
 impl DatabaseManager {
-    fn _create_table(&self) -> Result<()> {
+    fn create_tables(&self) -> Result<()> {
         let table_creation_queries = format!(
-            "CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
+            "CREATE TABLE IF NOT EXISTS {ITEMS_TABLE_NAME} (
                 Name            TEXT,
                 Quantity        INTEGER,
-                Category        TEXT);"
+                Category        TEXT);
+             CREATE TABLE IF NOT EXISTS {ITEMS_SEEN_TABLE_NAME} (
+                Category        TEXT,
+                Name            TEXT,
+                Date            TEXT);"
         );
         self.connection.execute_batch(&table_creation_queries)
     }
@@ -36,23 +53,37 @@ impl DatabaseManager {
             _user_name: user_name,
         };
 
-        db_manager._create_table()?;
+        db_manager.create_tables()?;
 
         Ok(db_manager)
     }
 
-    pub fn get_all(&self) -> Result<Vec<ShoppingItem>> {
-        let query = format!("Select * from {TABLE_NAME};");
+    pub fn get_all_items(&self) -> anyhow::Result<Vec<ShoppingItem>> {
+        self.get_all(&|row| {
+            Ok(ShoppingItem {
+                name: row.get("Name")?,
+                quantity: row.get("Quantity")?,
+                category: row.get("Category")?,
+            })
+        })
+    }
+
+    pub fn get_seen_items(&self) -> anyhow::Result<Vec<(String, String)>> {
+        self.get_all(&|row| Ok((row.get("Category")?, row.get("Name")?)))
+    }
+
+    pub fn get_all<ReturnType, ConversionFunction>(
+        &self,
+        func: &ConversionFunction,
+    ) -> anyhow::Result<Vec<ReturnType>>
+    where
+        ConversionFunction: Fn(&Row<'_>) -> rusqlite::Result<ReturnType>,
+    {
+        let query = format!("Select * from {ITEMS_TABLE_NAME};");
         let mut statement = self.connection.prepare(&query)?;
 
         let items = statement
-            .query_map([], |row| {
-                Ok(ShoppingItem {
-                    name: row.get("Name")?,
-                    quantity: row.get("Quantity")?,
-                    category: row.get("Category")?,
-                })
-            })?
+            .query_map([], func)?
             .filter_map(|result_item| result_item.ok())
             .collect();
 
@@ -64,7 +95,7 @@ impl DatabaseManager {
         name: &String,
         category: &String,
     ) -> anyhow::Result<QueryResult<ShoppingItem>> {
-        let query = format!("Select * from {TABLE_NAME} WHERE Name=?1 AND Category=?2;");
+        let query = format!("Select * from {ITEMS_TABLE_NAME} WHERE Name=?1 AND Category=?2;");
         let mut statement = self.connection.prepare(&query)?;
 
         let mut iter = statement.query_map(&[name, category], |row| {
@@ -92,20 +123,11 @@ impl DatabaseManager {
         }
     }
 
-    pub fn add_item_if_not_present(&self, item: &ShoppingItem) -> bool {
-        match self.contains(&item.name, &item.category) {
-            Ok(true) => false,
-            Ok(false) => match self.add_item(item) {
-                Ok(_) => true,
-                Err(_) => false,
-            },
-            Err(_) => false,
-        }
-    }
+    pub fn add_to_items(&self, item: &ShoppingItem) -> anyhow::Result<()> {
+        let query = format!(
+            "INSERT INTO {ITEMS_TABLE_NAME} (Name, Quantity, Category) VALUES (?1, ?2, ?3);"
+        );
 
-    pub fn add_item(&self, item: &ShoppingItem) -> anyhow::Result<()> {
-        let query =
-            format!("INSERT INTO {TABLE_NAME} (Name, Quantity, Category) VALUES (?1, ?2, ?3);");
         self.connection.execute(
             &query,
             &[&item.name, &item.quantity.to_string(), &item.category],
@@ -114,8 +136,19 @@ impl DatabaseManager {
         Ok(())
     }
 
+    pub fn add_to_items_seen(&self, item: &ShoppingItem) -> anyhow::Result<()> {
+        let query = format!(
+            "INSERT INTO {ITEMS_SEEN_TABLE_NAME} (Category, Name, Date) VALUES (?1, ?2, date());"
+        );
+
+        self.connection
+            .execute(&query, &[&item.category, &item.name])?;
+
+        Ok(())
+    }
+
     pub fn delete_item(&self, item: &ShoppingItem) -> anyhow::Result<()> {
-        let query = format!("DELETE FROM {TABLE_NAME} WHERE Name=?1 AND Category=?2;");
+        let query = format!("DELETE FROM {ITEMS_TABLE_NAME} WHERE Name=?1 AND Category=?2;");
         self.connection
             .execute(&query, &[&item.name, &item.category])?;
 

@@ -7,9 +7,10 @@ use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
-use database_methods::{add_item, remove_item};
+use database_methods::{add_item, get_all_items, get_all_items_seen, remove_item};
 use serde::{Deserialize, Serialize};
 use std::{
+    collections::HashMap,
     net::SocketAddr,
     sync::{Arc, Mutex},
 };
@@ -28,6 +29,7 @@ async fn main() -> anyhow::Result<()> {
     let router = Router::new()
         .route("/add_item", post(add_item_handler))
         .route("/get_items", get(get_list_handler))
+        .route("/get_items_seen", get(get_items_seen_handler))
         .route("/delete_item", post(delete_item_handler))
         .layer(Extension(app_state));
 
@@ -39,8 +41,22 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn get_list_handler(state: Extension<Arc<AppState>>) -> Json<Vec<ShoppingItem>> {
-    Json(state.0.db_manager.lock().unwrap().get_all().unwrap())
+async fn get_list_handler(
+    state: Extension<Arc<AppState>>,
+) -> (StatusCode, Json<Vec<ShoppingItem>>) {
+    match get_all_items(&state.0.db_manager).await {
+        Ok(items) => (StatusCode::OK, Json(items)),
+        Err(_) => (StatusCode::CONFLICT, Json(vec![])),
+    }
+}
+
+async fn get_items_seen_handler(
+    state: Extension<Arc<AppState>>,
+) -> (StatusCode, Json<HashMap<String, Vec<String>>>) {
+    match get_all_items_seen(&state.0.db_manager).await {
+        Ok(items) => (StatusCode::OK, Json(items)),
+        Err(_) => (StatusCode::CONFLICT, Json(HashMap::new())),
+    }
 }
 
 async fn add_item_handler(

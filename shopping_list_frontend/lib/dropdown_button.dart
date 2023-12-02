@@ -49,11 +49,15 @@ class _DropdownButtonState extends State<CategoryDropdownButton> {
       );
     }).toList();
 
+    final defaultSelectedCategory = widget.selectedCategory.isEmpty
+        ? addNewItemString
+        : widget.selectedCategory;
+
     return DropdownButton<String>(
       key: _dropdownKey,
       padding: const EdgeInsets.all(4),
       isExpanded: true,
-      value: widget.selectedCategory,
+      value: defaultSelectedCategory,
       elevation: 16,
       dropdownColor: Colors.white,
       focusColor: Colors.white,

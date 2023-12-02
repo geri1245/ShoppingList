@@ -12,17 +12,17 @@ pub enum QueryResult<T> {
     NoRowsReturned,
 }
 
-// pub enum Table {
-//     Items,
-//     ItemsSeen,
-// }
+pub enum Table {
+    Items,
+    ItemsSeen,
+}
 
-// pub const fn table_to_table_name(table: Table) -> &'static str {
-//     match table {
-//         Table::Items => ITEMS_TABLE_NAME,
-//         Table::ItemsSeen => ITEMS_SEEN_TABLE_NAME,
-//     }
-// }
+pub const fn table_to_table_name(table: Table) -> &'static str {
+    match table {
+        Table::Items => ITEMS_TABLE_NAME,
+        Table::ItemsSeen => ITEMS_SEEN_TABLE_NAME,
+    }
+}
 
 pub struct DatabaseManager {
     connection: Connection,
@@ -37,11 +37,15 @@ impl DatabaseManager {
             "CREATE TABLE IF NOT EXISTS {ITEMS_TABLE_NAME} (
                 Name            TEXT,
                 Quantity        INTEGER,
-                Category        TEXT);
+                Category        TEXT,
+                primary key (Name, Category)
+            );
              CREATE TABLE IF NOT EXISTS {ITEMS_SEEN_TABLE_NAME} (
                 Category        TEXT,
                 Name            TEXT,
-                Date            TEXT);"
+                Date            TEXT,
+                primary key (Name, Category)
+            );"
         );
         self.connection.execute_batch(&table_creation_queries)
     }
@@ -59,27 +63,35 @@ impl DatabaseManager {
     }
 
     pub fn get_all_items(&self) -> anyhow::Result<Vec<ShoppingItem>> {
-        self.get_all(&|row| {
-            Ok(ShoppingItem {
-                name: row.get("Name")?,
-                quantity: row.get("Quantity")?,
-                category: row.get("Category")?,
-            })
-        })
+        self.get_all(
+            &|row| {
+                Ok(ShoppingItem {
+                    name: row.get("Name")?,
+                    quantity: row.get("Quantity")?,
+                    category: row.get("Category")?,
+                })
+            },
+            Table::Items,
+        )
     }
 
     pub fn get_seen_items(&self) -> anyhow::Result<Vec<(String, String)>> {
-        self.get_all(&|row| Ok((row.get("Category")?, row.get("Name")?)))
+        self.get_all(
+            &|row| Ok((row.get("Category")?, row.get("Name")?)),
+            Table::ItemsSeen,
+        )
     }
 
     pub fn get_all<ReturnType, ConversionFunction>(
         &self,
         func: &ConversionFunction,
+        table: Table,
     ) -> anyhow::Result<Vec<ReturnType>>
     where
         ConversionFunction: Fn(&Row<'_>) -> rusqlite::Result<ReturnType>,
     {
-        let query = format!("Select * from {ITEMS_TABLE_NAME};");
+        let table_name = table_to_table_name(table);
+        let query = format!("Select * from {table_name};");
         let mut statement = self.connection.prepare(&query)?;
 
         let items = statement

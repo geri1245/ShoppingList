@@ -23,9 +23,9 @@ pub async fn get_all_items_seen(
 
     for (category, name) in items.into_iter() {
         if let Some(items) = category_to_items_map.get_mut(&category) {
-            items.push(name);
+            items.push(name.to_lowercase());
         } else {
-            category_to_items_map.insert(category, vec![name]);
+            category_to_items_map.insert(category, vec![name.to_lowercase()]);
         }
     }
 

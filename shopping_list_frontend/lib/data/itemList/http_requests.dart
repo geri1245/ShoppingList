@@ -45,8 +45,15 @@ Future<RequestResult<CategoryToItemsSeenMap>> fetchItemsSeen() async {
         .timeout(serverTimeout);
 
     if (response.statusCode == 200) {
-      final items = jsonDecode(response.body) as Map<String, List<String>>;
-      return RequestResult(statusCode: response.statusCode, data: items);
+      final items = jsonDecode(response.body) as Map<String, dynamic>;
+      CategoryToItemsSeenMap map = {};
+
+      for (var entry in items.entries) {
+        map[entry.key] =
+            (entry.value as List<dynamic>).map((e) => e.toString()).toList();
+      }
+
+      return RequestResult(statusCode: response.statusCode, data: map);
     } else {
       return RequestResult(
           statusCode: response.statusCode, errorMessage: response.body);

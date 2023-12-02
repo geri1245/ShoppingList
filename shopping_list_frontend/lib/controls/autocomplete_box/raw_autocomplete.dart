@@ -24,14 +24,6 @@ class AutocompleteBox extends StatefulWidget {
 }
 
 class AutocompleteBoxState extends State<AutocompleteBox> {
-  static const List<String> _kOptions = <String>[
-    'alma',
-    'barack',
-    'dinnye',
-    'korte',
-    'kifli',
-  ];
-
   late FocusNode _focusNode;
   late TextEditingController _textEditingController;
 
@@ -63,30 +55,38 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
           Row(children: [
             Expanded(
               flex: 12,
-              child: Autocomplete(
-                optionsBuilder: (TextEditingValue textEditingValue) {
-                  if (textEditingValue.text == '') {
-                    return const Iterable<String>.empty();
-                  }
-                  return _kOptions.where((String option) {
-                    return option.contains(textEditingValue.text.toLowerCase());
-                  });
-                },
-                fieldViewBuilder: (context, textEditingController, focusNode,
-                    onFieldSubmitted) {
-                  _textEditingController = textEditingController;
-                  _focusNode = focusNode;
+              child:
+                  BlocBuilder<AutoCompleteBoxCubit, ItemAutoCompleteBoxState>(
+                builder: (context, state) => Autocomplete(
+                  optionsBuilder: (TextEditingValue textEditingValue) {
+                    if (textEditingValue.text == '' ||
+                        state.category == "" ||
+                        !state.itemsSeen.containsKey(state.category)) {
+                      return const Iterable<String>.empty();
+                    }
 
-                  return TextFormField(
-                    controller: textEditingController,
-                    focusNode: focusNode,
-                    onFieldSubmitted: (String value) {
-                      _onCurrentTextAdded(context);
-                    },
-                  );
-                },
-                onSelected: (selectedItem) =>
-                    _onItemSelected(context, selectedItem),
+                    return state.itemsSeen[state.category]!
+                        .where((String option) {
+                      return option
+                          .contains(textEditingValue.text.toLowerCase());
+                    });
+                  },
+                  fieldViewBuilder: (context, textEditingController, focusNode,
+                      onFieldSubmitted) {
+                    _textEditingController = textEditingController;
+                    _focusNode = focusNode;
+
+                    return TextFormField(
+                      controller: textEditingController,
+                      focusNode: focusNode,
+                      onFieldSubmitted: (String value) {
+                        _onCurrentTextAdded(context);
+                      },
+                    );
+                  },
+                  onSelected: (selectedItem) =>
+                      _onItemSelected(context, selectedItem),
+                ),
               ),
             ),
             Expanded(

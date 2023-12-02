@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:shopping_list_frontend/data/autoCompleteBox/auto_complete_box_cubit.dart';
@@ -129,76 +128,4 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
       ),
     );
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Padding(
-  //     padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
-  //     child: Column(children: [
-  //       RawAutocomplete<String>(
-  //         optionsBuilder: (TextEditingValue textEditingValue) {
-  //           if (textEditingValue.text == '') {
-  //             return const Iterable<String>.empty();
-  //           }
-  //           return _kOptions.where((String option) {
-  //             return option.contains(textEditingValue.text.toLowerCase());
-  //           });
-  //         },
-  //         displayStringForOption: (option) => option,
-  //         fieldViewBuilder: (
-  //           BuildContext context,
-  //           TextEditingController textEditingController,
-  //           FocusNode focusNode,
-  //           VoidCallback onFieldSubmitted,
-  //         ) {
-  //           _textEditingController = textEditingController;
-  //           return Padding(
-  //             padding: const EdgeInsets.all(16),
-  //             child: Row(children: [
-  //               Expanded(
-  //                 child: TextFormField(
-  //                   controller: textEditingController,
-  //                   focusNode: _focusNode,
-  //                   onFieldSubmitted: (String value) {
-  //                     _onCurrentTextAdded(context);
-  //                   },
-  //                 ),
-  //               ),
-  //             ]),
-  //           );
-  //         },
-  //         onSelected: (selectedItem) => _onItemSelected(context, selectedItem),
-  //         optionsViewBuilder: (
-  //           BuildContext context,
-  //           AutocompleteOnSelected<String> onSelected,
-  //           Iterable<String> options,
-  //         ) {
-  //           return Align(
-  //             alignment: Alignment.topLeft,
-  //             child: Material(
-  //               elevation: 4.0,
-  //               child: ListView.builder(
-  //                 shrinkWrap: true,
-  //                 padding: const EdgeInsets.all(8.0),
-  //                 itemCount: options.length,
-  //                 itemBuilder: (BuildContext context, int index) {
-  //                   final String option = options.elementAt(index);
-  //                   return GestureDetector(
-  //                     onTap: () {
-  //                       onSelected(option);
-  //                     },
-  //                     child: ListTile(
-  //                       title: Text(option),
-  //                     ),
-  //                   );
-  //                 },
-  //               ),
-  //             ),
-  //           );
-  //         },
-  //       ),
-  //
-  //     ]),
-  //   );
-  // }
 }

@@ -2,11 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shopping_list_frontend/data/autoCompleteBox/autocomplete_state.dart';
 
 class AutoCompleteBoxCubit extends Cubit<ItemAutoCompleteBoxState> {
-  AutoCompleteBoxCubit(String category)
+  AutoCompleteBoxCubit()
       : super(ItemAutoCompleteBoxState(
-            categories: ["Default", "Shopping", "Ikea"],
-            category: category,
-            quantity: 1));
+            categories: [], category: "", quantity: 1));
 
   void setQuantity(int newQuantity) {
     if (newQuantity == state.quantity) return;
@@ -34,6 +32,15 @@ class AutoCompleteBoxCubit extends Cubit<ItemAutoCompleteBoxState> {
     emit(ItemAutoCompleteBoxState(
         categories: newCategories,
         category: newCategory,
+        quantity: state.quantity));
+  }
+
+  void updateCategories(List<String> newCategories) {
+    emit(ItemAutoCompleteBoxState(
+        categories: newCategories,
+        category: state.category == ""
+            ? (newCategories.isEmpty ? "" : newCategories[0])
+            : state.category,
         quantity: state.quantity));
   }
 

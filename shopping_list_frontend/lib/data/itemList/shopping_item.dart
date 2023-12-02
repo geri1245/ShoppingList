@@ -25,6 +25,7 @@ class ShoppingItem extends Equatable {
 }
 
 typedef ItemCategoryMap = Map<String, List<ShoppingItem>>;
+typedef CategoryToItemsSeenMap = Map<String, List<String>>;
 
 bool addToMap(ItemCategoryMap map, ShoppingItem item) {
   if (!map.containsKey(item.category)) {

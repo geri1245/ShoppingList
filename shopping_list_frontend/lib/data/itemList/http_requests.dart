@@ -38,6 +38,24 @@ Future<RequestResult<ItemCategoryMap>> fetchItems() async {
   }
 }
 
+Future<RequestResult<CategoryToItemsSeenMap>> fetchItemsSeen() async {
+  try {
+    final response = await http
+        .get(Uri.parse('$backendUrl/get_items_seen'))
+        .timeout(serverTimeout);
+
+    if (response.statusCode == 200) {
+      final items = jsonDecode(response.body) as Map<String, List<String>>;
+      return RequestResult(statusCode: response.statusCode, data: items);
+    } else {
+      return RequestResult(
+          statusCode: response.statusCode, errorMessage: response.body);
+    }
+  } catch (e) {
+    return RequestResult(statusCode: -1, errorMessage: e.toString());
+  }
+}
+
 Future<int> addItem(ShoppingItem item) async {
   try {
     var body = json.encode(item.toJson());

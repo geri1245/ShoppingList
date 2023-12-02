@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shopping_list_frontend/data/autoCompleteBox/auto_complete_box_cubit.dart';
+import 'package:shopping_list_frontend/delete_popup_entry.dart';
 import 'package:shopping_list_frontend/text_input_dialog.dart';
 
 const String addNewItemString = "New category...";
@@ -17,17 +18,39 @@ class CategoryDropdownButton extends StatefulWidget {
 }
 
 class _DropdownButtonState extends State<CategoryDropdownButton> {
+  late GlobalKey _dropdownKey;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _dropdownKey = GlobalKey();
+  }
+
   @override
   Widget build(BuildContext context) {
     var dropdownOptions = [...widget.categories, addNewItemString]
         .map<DropdownMenuItem<String>>((String value) {
       return DropdownMenuItem<String>(
         value: value,
-        child: Text(value),
+        child: GestureDetector(
+          child: Text(value),
+          onLongPress: () => showMenu(
+            context: context,
+            position: const RelativeRect.fromLTRB(2, 2, 2, 2),
+            items: [const DeletePopupEntry()],
+          ).then((shouldRemove) {
+            if (shouldRemove != null && shouldRemove == true) {
+              context.read<AutoCompleteBoxCubit>().removeCategory(value);
+              Navigator.pop(_dropdownKey.currentContext!);
+            }
+          }),
+        ),
       );
     }).toList();
 
     return DropdownButton<String>(
+      key: _dropdownKey,
       padding: const EdgeInsets.all(4),
       isExpanded: true,
       value: widget.selectedCategory,

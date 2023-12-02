@@ -39,6 +39,25 @@ class AutoCompleteBoxCubit extends Cubit<ItemAutoCompleteBoxState> {
         quantity: state.quantity));
   }
 
+  void removeCategory(String categoryToRemove) {
+    if (state.categories.length < 2) {
+      return;
+    }
+    var newCategories = [...state.categories];
+
+    if (newCategories.remove(categoryToRemove)) {
+      final newCategory = state.category == categoryToRemove
+          ? (newCategories.isEmpty ? "" : newCategories[0])
+          : state.category;
+
+      emit(ItemAutoCompleteBoxState(
+          categories: newCategories,
+          category: newCategory,
+          itemsSeen: state.itemsSeen,
+          quantity: state.quantity));
+    }
+  }
+
   void updateCategories(List<String> newCategories) {
     emit(ItemAutoCompleteBoxState(
         categories: newCategories,

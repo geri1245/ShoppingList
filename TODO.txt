@@ -1,4 +1,3 @@
-check that same item can't be added multiple times to seen list
 implement pull down to refresh
 handle case sensitivity on the frontend
 place focus on the textbox after selecting a category

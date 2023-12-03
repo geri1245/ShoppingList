@@ -15,6 +15,11 @@ class ShoppingList extends StatefulWidget {
 }
 
 class _ShoppingListState extends State<ShoppingList> {
+  Future<void> _onPagePullRefreshed(BuildContext context) {
+    return Future(
+        () => context.read<ItemListBloc>().add(UpdateAllItemsEvent()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -28,14 +33,17 @@ class _ShoppingListState extends State<ShoppingList> {
               SnackBar(content: Text(statusToErrorMessage(state.status))));
         },
         child: BlocBuilder<ItemListBloc, ItemListState>(
-          builder: (context, state) => Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              const ItemAutoComplete(),
-              Expanded(
-                child: ShoppingItemList(items: state.items),
-              )
-            ],
+          builder: (context, state) => RefreshIndicator(
+            onRefresh: () => _onPagePullRefreshed(context),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                const ItemAutoComplete(),
+                Expanded(
+                  child: ShoppingItemList(items: state.items),
+                )
+              ],
+            ),
           ),
         ),
       ),

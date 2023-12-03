@@ -22,14 +22,11 @@ Future<String?> getTextInputWithDialog(BuildContext context) {
                   onPressed: () {
                     final text = controller.text.trim();
                     Navigator.pop(context, text);
-                    // TODO: Does this need to be disposed? If so, its text should be copied, so it won't be disposed
-                    // controller.dispose();
                   },
                   child: const Text('Add'),
                 ),
                 TextButton(
                   onPressed: () {
-                    controller.dispose();
                     Navigator.pop(context);
                   },
                   child: const Text('Cancel'),

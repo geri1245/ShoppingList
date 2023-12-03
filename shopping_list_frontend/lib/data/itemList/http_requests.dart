@@ -3,7 +3,8 @@ import 'dart:convert';
 
 import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
 
-const backendUrl = 'http://localhost:3000';
+const backendUrl = 'http://10.0.2.2:3000';
+// const backendUrl = 'http://localhost:3000';
 const serverTimeout = Duration(seconds: 2);
 
 final client = http.Client();

@@ -1,7 +1,8 @@
 enum ItemListStatus {
   ok,
   loading,
-  error,
+  unknownError,
+  networkError,
   itemAlreadyInList,
   failedToAddItem,
   failedToRemoveItem
@@ -9,8 +10,10 @@ enum ItemListStatus {
 
 String statusToErrorMessage(ItemListStatus status) {
   switch (status) {
-    case ItemListStatus.error:
+    case ItemListStatus.unknownError:
       return "Something went wrong... Sorry 😢";
+    case ItemListStatus.networkError:
+      return "Couldn't connect to server 🔎❌🖥️";
     case ItemListStatus.itemAlreadyInList:
       return "This item is already in the list.";
     case ItemListStatus.failedToAddItem:

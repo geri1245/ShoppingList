@@ -5,7 +5,7 @@ import 'package:shopping_list_frontend/data/itemList/http_requests.dart';
 class AutoCompleteBoxCubit extends Cubit<ItemAutoCompleteBoxState> {
   AutoCompleteBoxCubit()
       : super(ItemAutoCompleteBoxState(
-            categories: [""], category: "", itemsSeen: {}, quantity: 1));
+            categories: [], category: null, itemsSeen: {}, quantity: 1));
 
   void setQuantity(int newQuantity) {
     if (newQuantity == state.quantity) return;
@@ -43,11 +43,12 @@ class AutoCompleteBoxCubit extends Cubit<ItemAutoCompleteBoxState> {
     if (state.categories.length < 2) {
       return;
     }
+
     var newCategories = [...state.categories];
 
     if (newCategories.remove(categoryToRemove)) {
       final newCategory = state.category == categoryToRemove
-          ? (newCategories.isEmpty ? "" : newCategories[0])
+          ? (newCategories.isEmpty ? null : newCategories[0])
           : state.category;
 
       emit(ItemAutoCompleteBoxState(
@@ -59,11 +60,17 @@ class AutoCompleteBoxCubit extends Cubit<ItemAutoCompleteBoxState> {
   }
 
   void updateCategories(List<String> newCategories) {
+    var newSelectedCategory = state.category;
+
+    if (newCategories.isEmpty) {
+      newSelectedCategory = null;
+    } else if (!newCategories.contains(newSelectedCategory)) {
+      newSelectedCategory = newCategories[0];
+    }
+
     emit(ItemAutoCompleteBoxState(
         categories: newCategories,
-        category: state.category == ""
-            ? (newCategories.isEmpty ? "" : newCategories[0])
-            : state.category,
+        category: newSelectedCategory,
         itemsSeen: state.itemsSeen,
         quantity: state.quantity));
   }
@@ -80,6 +87,6 @@ class AutoCompleteBoxCubit extends Cubit<ItemAutoCompleteBoxState> {
     }
   }
 
-  String get category => state.category;
+  String get category => state.category ?? "";
   int get quantity => state.quantity;
 }

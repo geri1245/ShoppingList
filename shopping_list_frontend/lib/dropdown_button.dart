@@ -11,7 +11,7 @@ class CategoryDropdownButton extends StatefulWidget {
       {required this.categories, required this.selectedCategory, super.key});
 
   final List<String> categories;
-  final String selectedCategory;
+  final String? selectedCategory;
 
   @override
   State<CategoryDropdownButton> createState() => _DropdownButtonState();
@@ -49,9 +49,7 @@ class _DropdownButtonState extends State<CategoryDropdownButton> {
       );
     }).toList();
 
-    final defaultSelectedCategory = widget.selectedCategory.isEmpty
-        ? addNewItemString
-        : widget.selectedCategory;
+    final defaultSelectedCategory = widget.selectedCategory ?? addNewItemString;
 
     return DropdownButton<String>(
       key: _dropdownKey,

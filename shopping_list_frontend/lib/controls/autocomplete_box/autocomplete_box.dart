@@ -15,7 +15,7 @@ class ItemAutoComplete extends StatelessWidget {
       child: BlocBuilder<AutoCompleteBoxCubit, ItemAutoCompleteBoxState>(
         builder: (context, state) {
           return AutocompleteBox(
-            selectedCategory: state.category,
+            selectedCategory: state.category ?? "",
             selectedQuantity: state.quantity,
           );
         },

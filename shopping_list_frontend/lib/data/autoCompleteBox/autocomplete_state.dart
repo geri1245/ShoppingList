@@ -9,6 +9,6 @@ class ItemAutoCompleteBoxState {
 
   List<String> categories;
   final CategoryToItemsSeenMap itemsSeen;
-  String category;
+  String? category;
   int quantity;
 }

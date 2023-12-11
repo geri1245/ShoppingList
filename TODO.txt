@@ -1,4 +1,3 @@
-handle case sensitivity on the frontend
 place focus on the textbox after selecting a category
 correctly position popup for dropdown items
 make suggestions removable with a popup

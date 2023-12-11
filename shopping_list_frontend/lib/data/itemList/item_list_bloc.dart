@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shopping_list_frontend/data/autoCompleteBox/auto_complete_box_cubit.dart';
 import 'package:shopping_list_frontend/data/itemList/events.dart';
@@ -12,6 +14,8 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
     on<ItemRemovedEvent>(_onItemCompleted);
     on<UpdateAllItemsEvent>(_updateAlItems);
   }
+
+  Completer? _completer;
 
   AutoCompleteBoxCubit autoCompleteBoxCubit = AutoCompleteBoxCubit()
     ..updateItemsSeenListFromServer();
@@ -50,11 +54,30 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
   ) async {
     final itemsResult = await fetchItems();
 
+    if (_completer != null) {
+      _completer?.complete();
+      _completer = null;
+    }
+
     if (itemsResult.statusCode == 200) {
       // Update the categories list with the keys
       autoCompleteBoxCubit.updateCategories(itemsResult.data!.keys.toList());
 
       emit(ItemListState(items: itemsResult.data!, status: ItemListStatus.ok));
+    } else {
+      emit(ItemListState(
+          items: state.items, status: ItemListStatus.networkError));
     }
+  }
+
+  Future<void> updateAlItemsAsync() {
+    add(UpdateAllItemsEvent());
+
+    if (_completer != null) {
+      _completer?.complete();
+    }
+
+    _completer = Completer();
+    return _completer!.future;
   }
 }

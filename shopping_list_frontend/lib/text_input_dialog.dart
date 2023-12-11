@@ -37,5 +37,8 @@ Future<String?> getTextInputWithDialog(BuildContext context) {
         ),
       ),
     ),
-  );
+  ).then((value) {
+    controller.dispose();
+    return value;
+  });
 }

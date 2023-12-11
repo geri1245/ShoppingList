@@ -16,8 +16,7 @@ class ShoppingList extends StatefulWidget {
 
 class _ShoppingListState extends State<ShoppingList> {
   Future<void> _onPagePullRefreshed(BuildContext context) {
-    return Future(
-        () => context.read<ItemListBloc>().add(UpdateAllItemsEvent()));
+    return context.read<ItemListBloc>().updateAlItemsAsync();
   }
 
   @override

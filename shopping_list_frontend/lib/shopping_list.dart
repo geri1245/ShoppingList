@@ -28,8 +28,14 @@ class _ShoppingListState extends State<ShoppingList> {
         listenWhen: (previous, current) => current.status != ItemListStatus.ok,
         listener: (context, state) {
           final messenger = ScaffoldMessenger.of(context);
-          messenger.showSnackBar(
-              SnackBar(content: Text(statusToErrorMessage(state.status))));
+          final currentView = View.of(context);
+          final viewInsets = EdgeInsets.fromViewPadding(
+              currentView.viewInsets, currentView.devicePixelRatio);
+          messenger.showSnackBar(SnackBar(
+              content: Padding(
+            padding: EdgeInsets.only(bottom: viewInsets.bottom),
+            child: Text(statusToErrorMessage(state.status)),
+          )));
         },
         child: BlocBuilder<ItemListBloc, ItemListState>(
           builder: (context, state) => RefreshIndicator(

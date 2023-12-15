@@ -32,7 +32,7 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
     context.read<ItemListBloc>().add(ItemAddedEvent(
           ShoppingItem(
               category: cubit.category,
-              itemName: selection,
+              itemName: selection.trim(),
               count: cubit.quantity),
         ));
     _textEditingController.clear();

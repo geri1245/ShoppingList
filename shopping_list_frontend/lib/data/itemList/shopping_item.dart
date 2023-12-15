@@ -33,7 +33,10 @@ bool addToMap(ItemCategoryMap map, ShoppingItem item) {
     return true;
   }
 
-  if (!(map[item.category]?.contains(item) ?? true)) {
+  final matchingItems = map[item.category]?.where((element) =>
+      element.itemName == item.itemName && element.category == item.category);
+
+  if (matchingItems?.isEmpty ?? true) {
     map[item.category]?.add(item);
     return true;
   }

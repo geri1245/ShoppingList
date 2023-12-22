@@ -33,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/delete_item", post(delete_item_handler))
         .layer(Extension(app_state));
 
-    let address = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let address = SocketAddr::from(([0, 0, 0, 0], 3000));
     let listener = tokio::net::TcpListener::bind(address).await.unwrap();
     tracing::debug!("listening on {}", address);
     axum::serve(listener, router).await.unwrap();

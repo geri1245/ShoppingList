@@ -1,3 +1,4 @@
+disable interaction when no network connection is available
 place focus on the textbox after selecting a category
 correctly position popup for dropdown items
 make suggestions removable with a popup

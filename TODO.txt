@@ -1,6 +1,4 @@
-disable interaction when no network connection is available
 place focus on the textbox after selecting a category
 correctly position popup for dropdown items
+make existing items editable
 make suggestions removable with a popup
-add rename functionality to categories
-add rename functionality to items in the list

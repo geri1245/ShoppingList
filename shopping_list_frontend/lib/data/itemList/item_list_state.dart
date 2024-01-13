@@ -2,12 +2,13 @@ import 'package:shopping_list_frontend/data/itemList/item_list_status.dart';
 import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
 
 class ItemListState {
-  ItemListState({required this.items, required this.status}) {
-    categories = items.keys.toList();
-  }
+  ItemListState(
+      {required this.items, required this.status, required this.itemsSeen})
+      : categories = items.keys.toList();
 
   final ItemCategoryMap items;
-  late List<String> categories;
+  final CategoryToItemsSeenMap itemsSeen;
+  final List<String> categories;
   ItemListStatus status;
 
   // @override

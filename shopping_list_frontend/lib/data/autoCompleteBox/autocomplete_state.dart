@@ -7,8 +7,8 @@ class ItemAutoCompleteBoxState {
       required this.itemsSeen,
       required this.quantity});
 
-  List<String> categories;
+  final List<String> categories;
   final CategoryToItemsSeenMap itemsSeen;
-  String? category;
-  int quantity;
+  final String? category;
+  final int quantity;
 }

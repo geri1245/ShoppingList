@@ -16,6 +16,13 @@ const serverTimeout = Duration(seconds: 2);
 
 final client = http.Client();
 
+class Response {
+  Response({required this.items, required this.itemsSeen});
+
+  ItemCategoryMap items;
+  CategoryToItemsSeenMap itemsSeen;
+}
+
 class RequestResult<T> {
   RequestResult({required this.statusCode, this.errorMessage, this.data});
 
@@ -26,40 +33,29 @@ class RequestResult<T> {
   final T? data;
 }
 
-Future<RequestResult<ItemCategoryMap>> fetchItems() async {
+Future<RequestResult<Response>> fetchItems() async {
   try {
     final response =
         await http.get(getBackendUrl('get_items')).timeout(serverTimeout);
 
     if (response.statusCode == 200) {
-      List items = jsonDecode(response.body) as List;
-      final decodedItems = items.map((e) => ShoppingItem.fromJson(e)).toList();
+      final responseMap = jsonDecode(response.body) as Map<String, dynamic>;
+      final itemsJson = responseMap["items"] as List;
+      final itemsSeenJson = responseMap["items_seen"] as Map<String, dynamic>;
+
+      final decodedItems =
+          itemsJson.map((e) => ShoppingItem.fromJson(e)).toList();
       final itemsMap = itemListToItemMap(decodedItems);
-      return RequestResult(statusCode: response.statusCode, data: itemsMap);
-    } else {
-      return RequestResult(
-          statusCode: response.statusCode, errorMessage: response.body);
-    }
-  } catch (e) {
-    return RequestResult(statusCode: -1, errorMessage: e.toString());
-  }
-}
+      CategoryToItemsSeenMap itemsSeenMap = {};
 
-Future<RequestResult<CategoryToItemsSeenMap>> fetchItemsSeen() async {
-  try {
-    final response =
-        await http.get(getBackendUrl('get_items_seen')).timeout(serverTimeout);
-
-    if (response.statusCode == 200) {
-      final items = jsonDecode(response.body) as Map<String, dynamic>;
-      CategoryToItemsSeenMap map = {};
-
-      for (var entry in items.entries) {
-        map[entry.key] =
+      for (var entry in itemsSeenJson.entries) {
+        itemsSeenMap[entry.key] =
             (entry.value as List<dynamic>).map((e) => e.toString()).toList();
       }
 
-      return RequestResult(statusCode: response.statusCode, data: map);
+      return RequestResult(
+          statusCode: response.statusCode,
+          data: Response(items: itemsMap, itemsSeen: itemsSeenMap));
     } else {
       return RequestResult(
           statusCode: response.statusCode, errorMessage: response.body);

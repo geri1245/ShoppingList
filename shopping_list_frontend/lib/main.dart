@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/data/itemList/state.dart';
+import 'package:shopping_list_frontend/data/itemList/item_list_state.dart';
 import 'package:shopping_list_frontend/shopping_list.dart';
 import 'package:shopping_list_frontend/data/itemList/events.dart';
 import 'package:shopping_list_frontend/data/itemList/item_list_status.dart';

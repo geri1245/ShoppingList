@@ -16,6 +16,7 @@ use std::{
     net::SocketAddr,
     sync::{Arc, Mutex},
 };
+use tokio::join;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -30,8 +31,7 @@ async fn main() -> anyhow::Result<()> {
 
     let router = Router::new()
         .route("/add_item", post(add_item_handler))
-        .route("/get_items", get(get_list_handler))
-        .route("/get_items_seen", get(get_items_seen_handler))
+        .route("/get_items", get(get_items_handler))
         .route("/delete_item", post(delete_item_handler))
         .route(
             "/delete_item_from_seen",
@@ -47,21 +47,13 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn get_list_handler(
-    state: Extension<Arc<AppState>>,
-) -> (StatusCode, Json<Vec<ShoppingItem>>) {
-    match get_all_items(&state.0.db_manager).await {
-        Ok(items) => (StatusCode::OK, Json(items)),
-        Err(_) => (StatusCode::CONFLICT, Json(vec![])),
-    }
-}
-
-async fn get_items_seen_handler(
-    state: Extension<Arc<AppState>>,
-) -> (StatusCode, Json<HashMap<String, Vec<String>>>) {
-    match get_all_items_seen(&state.0.db_manager).await {
-        Ok(items) => (StatusCode::OK, Json(items)),
-        Err(_) => (StatusCode::CONFLICT, Json(HashMap::new())),
+async fn get_items_handler(state: Extension<Arc<AppState>>) -> (StatusCode, Json<Response>) {
+    let items_fut = get_all_items(&state.0.db_manager);
+    let items_seen_fut = get_all_items_seen(&state.0.db_manager);
+    let (items_res, items_seen_res) = join!(items_fut, items_seen_fut);
+    match (items_res, items_seen_res) {
+        (Ok(items), Ok(items_seen)) => (StatusCode::OK, Json(Response { items, items_seen })),
+        _ => (StatusCode::CONFLICT, Json(Response::empty())),
     }
 }
 
@@ -108,4 +100,19 @@ pub struct ShoppingItem {
 #[derive(Clone)]
 pub struct AppState {
     db_manager: Arc<Mutex<database_manager::DatabaseManager>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Response {
+    items: Vec<ShoppingItem>,
+    items_seen: HashMap<String, Vec<String>>,
+}
+
+impl Response {
+    pub fn empty() -> Self {
+        Response {
+            items: Vec::new(),
+            items_seen: HashMap::new(),
+        }
+    }
 }

@@ -11,16 +11,23 @@ class ItemAutoComplete extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ItemListBloc, ItemListState>(
-      builder: (context, state) => BlocProvider(
-        lazy: false,
-        create: (context) =>
-            AutoCompleteBoxCubit(state.categories, state.itemsSeen),
+    return BlocProvider(
+      create: (context) {
+        final itemListState = context.read<ItemListBloc>().state;
+        return AutoCompleteBoxCubit(
+            itemListState.categories, itemListState.itemsSeen);
+      },
+      child: BlocListener<ItemListBloc, ItemListState>(
+        listener: (context, itemListState) {
+          context
+              .read<AutoCompleteBoxCubit>()
+              .updateAll(itemListState.categories, itemListState.itemsSeen);
+        },
         child: BlocBuilder<AutoCompleteBoxCubit, ItemAutoCompleteBoxState>(
-          builder: (context, state) {
+          builder: (context, autocompleteBoxState) {
             return AutocompleteBox(
-              selectedCategory: state.category ?? "",
-              selectedQuantity: state.quantity,
+              selectedCategory: autocompleteBoxState.category ?? "",
+              selectedQuantity: autocompleteBoxState.quantity,
             );
           },
         ),

@@ -69,8 +69,10 @@ Future<int> addItem(ShoppingItem item) async {
   try {
     var body = json.encode(item.toJson());
 
-    var response = await http.post(getBackendUrl('add_item'),
-        headers: {"Content-Type": "application/json"}, body: body);
+    var response = await http
+        .post(getBackendUrl('add_item'),
+            headers: {"Content-Type": "application/json"}, body: body)
+        .timeout(serverTimeout);
 
     return response.statusCode;
   } catch (e) {
@@ -82,8 +84,10 @@ Future<int> removeItem(ShoppingItem item) async {
   try {
     var body = json.encode(item.toJson());
 
-    var response = await http.post(getBackendUrl('delete_item'),
-        headers: {"Content-Type": "application/json"}, body: body);
+    var response = await http
+        .post(getBackendUrl('delete_item'),
+            headers: {"Content-Type": "application/json"}, body: body)
+        .timeout(serverTimeout);
 
     return response.statusCode;
   } catch (e) {

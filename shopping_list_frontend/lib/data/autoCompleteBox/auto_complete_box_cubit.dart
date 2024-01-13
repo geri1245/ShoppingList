@@ -7,7 +7,7 @@ class AutoCompleteBoxCubit extends Cubit<ItemAutoCompleteBoxState> {
       List<String> categories, CategoryToItemsSeenMap itemsSeen)
       : super(ItemAutoCompleteBoxState(
             categories: categories,
-            category: null,
+            category: categories.firstOrNull,
             itemsSeen: itemsSeen,
             quantity: 1));
 
@@ -76,6 +76,14 @@ class AutoCompleteBoxCubit extends Cubit<ItemAutoCompleteBoxState> {
         categories: newCategories,
         category: newSelectedCategory,
         itemsSeen: state.itemsSeen,
+        quantity: state.quantity));
+  }
+
+  void updateAll(List<String> categories, CategoryToItemsSeenMap itemsSeen) {
+    emit(ItemAutoCompleteBoxState(
+        categories: categories,
+        category: categories.firstOrNull,
+        itemsSeen: itemsSeen,
         quantity: state.quantity));
   }
 

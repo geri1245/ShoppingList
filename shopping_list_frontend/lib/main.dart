@@ -55,6 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
           )));
         },
         child: BlocBuilder<ItemListBloc, ItemListState>(
+          buildWhen: (previous, current) => previous.status != current.status,
           builder: (context, state) => Scaffold(
               resizeToAvoidBottomInset: false,
               appBar: AppBar(

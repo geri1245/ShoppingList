@@ -26,8 +26,11 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
         items: state.items,
         status: ItemListStatus.ok,
         itemsSeen: state.itemsSeen);
+
     if (addToMap(newState.items, event.item)) {
-      addItem(event.item);
+      final responseCode = await addItem(event.item);
+      newState.status =
+          responseCode == 200 ? ItemListStatus.ok : ItemListStatus.networkError;
     } else {
       newState.status = ItemListStatus.itemAlreadyInList;
     }
@@ -44,7 +47,9 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
         status: ItemListStatus.ok,
         itemsSeen: state.itemsSeen);
     if (removeFromMap(newState.items, event.item)) {
-      removeItem(event.item);
+      final responseCode = await removeItem(event.item);
+      newState.status =
+          responseCode == 200 ? ItemListStatus.ok : ItemListStatus.networkError;
     } else {
       newState.status = ItemListStatus.failedToRemoveItem;
     }

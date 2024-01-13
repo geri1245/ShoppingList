@@ -7,7 +7,9 @@ use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
-use database_methods::{add_item, get_all_items, get_all_items_seen, remove_item};
+use database_methods::{
+    add_item, get_all_items, get_all_items_seen, remove_item, remove_item_from_seen,
+};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -31,6 +33,10 @@ async fn main() -> anyhow::Result<()> {
         .route("/get_items", get(get_list_handler))
         .route("/get_items_seen", get(get_items_seen_handler))
         .route("/delete_item", post(delete_item_handler))
+        .route(
+            "/delete_item_from_seen",
+            post(delete_item_from_seen_handler),
+        )
         .layer(Extension(app_state));
 
     let address = SocketAddr::from(([0, 0, 0, 0], 3000));
@@ -75,6 +81,17 @@ async fn delete_item_handler(
     Json(payload): Json<ShoppingItem>,
 ) -> (StatusCode, Json<()>) {
     if remove_item(&state.0.db_manager, &payload).await {
+        (StatusCode::OK, Json(()))
+    } else {
+        (StatusCode::CONFLICT, Json(()))
+    }
+}
+
+async fn delete_item_from_seen_handler(
+    state: Extension<Arc<AppState>>,
+    Json(payload): Json<ShoppingItem>,
+) -> (StatusCode, Json<()>) {
+    if remove_item_from_seen(&state.0.db_manager, &payload).await {
         (StatusCode::OK, Json(()))
     } else {
         (StatusCode::CONFLICT, Json(()))

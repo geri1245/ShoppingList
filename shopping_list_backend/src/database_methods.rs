@@ -54,3 +54,12 @@ pub async fn remove_item(db_manager: &Arc<Mutex<DatabaseManager>>, item: &Shoppi
 
     db_manager.delete_item(item).is_ok()
 }
+
+pub async fn remove_item_from_seen(
+    db_manager: &Arc<Mutex<DatabaseManager>>,
+    item: &ShoppingItem,
+) -> bool {
+    let db_manager = db_manager.lock().unwrap();
+
+    db_manager.delete_item_from_seen(item).is_ok()
+}

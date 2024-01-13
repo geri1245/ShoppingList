@@ -167,6 +167,14 @@ impl DatabaseManager {
         Ok(())
     }
 
+    pub fn delete_item_from_seen(&self, item: &ShoppingItem) -> anyhow::Result<()> {
+        let query = format!("DELETE FROM {ITEMS_SEEN_TABLE_NAME} WHERE Name=?1 AND Category=?2;");
+        self.connection
+            .execute(&query, &[&item.name, &item.category])?;
+
+        Ok(())
+    }
+
     fn _single_result_query<T: FromSql>(&self, query: &str) -> Result<T> {
         let mut statement = self.connection.prepare(&query)?;
         let mut iter = statement.query_map([], |row| Ok(row.get::<usize, T>(0)?))?;

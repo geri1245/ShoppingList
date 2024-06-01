@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:numberpicker/numberpicker.dart';
 import 'package:shopping_list_frontend/data/model/local_app_state_cubit.dart';
 import 'package:shopping_list_frontend/data/itemList/events.dart';
 import 'package:shopping_list_frontend/data/model/item_list_bloc.dart';
 import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
 import 'package:shopping_list_frontend/data/state/local_app_state.dart';
+import 'package:shopping_list_frontend/view/number_input.dart';
 
 class AutocompleteBox extends StatefulWidget {
   const AutocompleteBox({required this.autocompleteEntries, super.key});
@@ -59,7 +59,7 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
           children: [
             Row(children: [
               Expanded(
-                flex: 12,
+                flex: 7,
                 child: BlocBuilder<LocalAppStateCubit, LocalAppState>(
                   builder: (context, state) => Autocomplete(
                     optionsBuilder: (TextEditingValue textEditingValue) {
@@ -96,24 +96,12 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
               BlocBuilder<LocalAppStateCubit, LocalAppState>(
                 builder: (BuildContext context, state) {
                   return Expanded(
-                    flex: 2,
-                    child: NumberPicker(
-                      axis: Axis.vertical,
-                      value: state.numberToAdd,
-                      minValue: 1,
-                      maxValue: 10,
-                      itemHeight: 20,
-                      selectedTextStyle: const TextStyle(fontSize: 16),
-                      textStyle: const TextStyle(fontSize: 8),
-                      onChanged: (value) => context
-                          .read<LocalAppStateCubit>()
-                          .updateQuantity(value),
-                    ),
-                  );
+                      flex: 4,
+                      child: NumberInput(currentValue: state.numberToAdd));
                 },
               ),
               Expanded(
-                flex: 2,
+                flex: 1,
                 child: IconButton(
                   onPressed: () => _onCurrentTextAdded(context),
                   icon: const Icon(
@@ -123,7 +111,7 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
                 ),
               ),
               Expanded(
-                flex: 2,
+                flex: 1,
                 child: IconButton(
                   onPressed: () {
                     context.read<LocalAppStateCubit>().stopAddingItems();

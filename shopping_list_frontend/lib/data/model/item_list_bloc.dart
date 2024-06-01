@@ -5,12 +5,15 @@ import 'package:shopping_list_frontend/data/itemList/events.dart';
 import 'package:shopping_list_frontend/data/itemList/http_requests.dart';
 import 'package:shopping_list_frontend/data/itemList/item_list_status.dart';
 import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
-import 'package:shopping_list_frontend/data/itemList/item_list_state.dart';
+import 'package:shopping_list_frontend/data/state/item_list_state.dart';
 
 class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
   ItemListBloc()
       : super(ItemListState(
-            items: {}, status: ItemListStatus.ok, itemsSeen: {})) {
+            items: {},
+            status: ItemListStatus.ok,
+            itemsSeen: {},
+            categoryForWhichItemsAreBeingAdded: null)) {
     on<ItemAddedEvent>(_onItemAdded);
     on<ItemRemovedEvent>(_onItemCompleted);
     on<UpdateAllItemsEvent>(_updateAlItems);
@@ -25,7 +28,8 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
     var newState = ItemListState(
         items: state.items,
         status: ItemListStatus.ok,
-        itemsSeen: state.itemsSeen);
+        itemsSeen: state.itemsSeen,
+        categoryForWhichItemsAreBeingAdded: null);
 
     if (addToMap(newState.items, event.item)) {
       final responseCode = await addItem(event.item);
@@ -45,7 +49,8 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
     var newState = ItemListState(
         items: state.items,
         status: ItemListStatus.ok,
-        itemsSeen: state.itemsSeen);
+        itemsSeen: state.itemsSeen,
+        categoryForWhichItemsAreBeingAdded: null);
     if (removeFromMap(newState.items, event.item)) {
       final responseCode = await removeItem(event.item);
       newState.status =
@@ -72,12 +77,14 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
       emit(ItemListState(
           items: itemsResult.data!.items,
           status: ItemListStatus.ok,
-          itemsSeen: itemsResult.data!.itemsSeen));
+          itemsSeen: itemsResult.data!.itemsSeen,
+          categoryForWhichItemsAreBeingAdded: null));
     } else {
       emit(ItemListState(
           items: state.items,
           status: ItemListStatus.networkError,
-          itemsSeen: state.itemsSeen));
+          itemsSeen: state.itemsSeen,
+          categoryForWhichItemsAreBeingAdded: null));
     }
   }
 
@@ -90,5 +97,9 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
 
     _completer = Completer();
     return _completer!.future;
+  }
+
+  List<String> getItemsSeenForCategory(String category) {
+    return state.itemsSeen[category] ?? [];
   }
 }

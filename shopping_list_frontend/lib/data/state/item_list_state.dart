@@ -3,12 +3,16 @@ import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
 
 class ItemListState {
   ItemListState(
-      {required this.items, required this.status, required this.itemsSeen})
+      {required this.items,
+      required this.status,
+      required this.itemsSeen,
+      required this.categoryForWhichItemsAreBeingAdded})
       : categories = items.keys.toList();
 
   final ItemCategoryMap items;
   final CategoryToItemsSeenMap itemsSeen;
   final List<String> categories;
+  final String? categoryForWhichItemsAreBeingAdded;
   ItemListStatus status;
 
   // @override

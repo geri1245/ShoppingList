@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/data/autoCompleteBox/autocomplete_state.dart';
+import 'package:shopping_list_frontend/data/state/autocomplete_state.dart';
 import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
 
 class AutoCompleteBoxCubit extends Cubit<ItemAutoCompleteBoxState> {
@@ -27,40 +27,6 @@ class AutoCompleteBoxCubit extends Cubit<ItemAutoCompleteBoxState> {
         category: newCategory,
         itemsSeen: state.itemsSeen,
         quantity: state.quantity));
-  }
-
-  void addCategory(String newCategory) {
-    var newCategories = [...state.categories];
-
-    if (!newCategories.contains(newCategory)) {
-      newCategories.add(newCategory);
-    }
-
-    emit(ItemAutoCompleteBoxState(
-        categories: newCategories,
-        category: newCategory,
-        itemsSeen: state.itemsSeen,
-        quantity: state.quantity));
-  }
-
-  void removeCategory(String categoryToRemove) {
-    if (state.categories.length < 2) {
-      return;
-    }
-
-    var newCategories = [...state.categories];
-
-    if (newCategories.remove(categoryToRemove)) {
-      final newCategory = state.category == categoryToRemove
-          ? (newCategories.isEmpty ? null : newCategories[0])
-          : state.category;
-
-      emit(ItemAutoCompleteBoxState(
-          categories: newCategories,
-          category: newCategory,
-          itemsSeen: state.itemsSeen,
-          quantity: state.quantity));
-    }
   }
 
   void updateCategories(List<String> newCategories) {

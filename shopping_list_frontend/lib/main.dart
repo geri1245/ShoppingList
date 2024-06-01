@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/data/itemList/item_list_state.dart';
-import 'package:shopping_list_frontend/shopping_list.dart';
+import 'package:shopping_list_frontend/data/state/item_list_state.dart';
+import 'package:shopping_list_frontend/view/main_page.dart';
 import 'package:shopping_list_frontend/data/itemList/events.dart';
 import 'package:shopping_list_frontend/data/itemList/item_list_status.dart';
-import 'package:shopping_list_frontend/data/itemList/item_list_bloc.dart';
+import 'package:shopping_list_frontend/data/model/item_list_bloc.dart';
 
 void main() {
   runApp(const MyApp());
@@ -49,10 +49,11 @@ class _MyHomePageState extends State<MyHomePage> {
           final viewInsets = EdgeInsets.fromViewPadding(
               currentView.viewInsets, currentView.devicePixelRatio);
           messenger.showSnackBar(SnackBar(
-              content: Padding(
-            padding: EdgeInsets.only(bottom: viewInsets.bottom),
-            child: Text(statusToErrorMessage(state.status)),
-          )));
+            content: Padding(
+              padding: EdgeInsets.only(bottom: viewInsets.bottom),
+              child: Text(statusToErrorMessage(state.status)),
+            ),
+          ));
         },
         child: BlocBuilder<ItemListBloc, ItemListState>(
           buildWhen: (previous, current) => previous.status != current.status,
@@ -70,8 +71,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
               body: switch (state.status) {
-                ItemListStatus.ok => const ShoppingList(),
-                // ItemListStatus.loading => null,
+                ItemListStatus.ok => const MainPage(),
+                ItemListStatus.itemAlreadyInList => const MainPage(),
+                ItemListStatus.failedToRemoveItem => const MainPage(),
+                ItemListStatus.failedToAddItem => const MainPage(),
                 _ => Center(
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,

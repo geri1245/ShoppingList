@@ -27,3 +27,9 @@ final class ErrorEvent extends ItemListEvent {
 
   final String error;
 }
+
+final class StartAddingItemsEvent extends ItemListEvent {
+  const StartAddingItemsEvent(this.category);
+
+  final String category;
+}

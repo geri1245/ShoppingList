@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/data/autoCompleteBox/auto_complete_box_cubit.dart';
-import 'package:shopping_list_frontend/delete_popup_entry.dart';
-import 'package:shopping_list_frontend/text_input_dialog.dart';
+import 'package:shopping_list_frontend/data/model/auto_complete_box_cubit.dart';
+import 'package:shopping_list_frontend/view/delete_popup_entry.dart';
+import 'package:shopping_list_frontend/view/text_input_dialog.dart';
 
 const String addNewItemString = "New category...";
 
@@ -39,12 +39,7 @@ class _DropdownButtonState extends State<CategoryDropdownButton> {
             context: context,
             position: const RelativeRect.fromLTRB(2, 2, 2, 2),
             items: [const DeletePopupEntry()],
-          ).then((shouldRemove) {
-            if (shouldRemove != null && shouldRemove == true) {
-              context.read<AutoCompleteBoxCubit>().removeCategory(value);
-              Navigator.pop(_dropdownKey.currentContext!);
-            }
-          }),
+          ).then((shouldRemove) {}),
         ),
       );
     }).toList();
@@ -64,9 +59,7 @@ class _DropdownButtonState extends State<CategoryDropdownButton> {
       onChanged: (String? selectedItem) {
         if (selectedItem == addNewItemString) {
           getTextInputWithDialog(context).then((String? newCategoryName) {
-            if (newCategoryName != null) {
-              context.read<AutoCompleteBoxCubit>().addCategory(newCategoryName);
-            }
+            if (newCategoryName != null) {}
           });
         } else if (selectedItem != null) {
           context.read<AutoCompleteBoxCubit>().setCategory(selectedItem);

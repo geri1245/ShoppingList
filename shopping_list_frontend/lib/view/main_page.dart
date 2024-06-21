@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/data/model/local_app_state_cubit.dart';
-import 'package:shopping_list_frontend/data/model/item_list_bloc.dart';
-import 'package:shopping_list_frontend/data/state/local_app_state.dart';
+import 'package:shopping_list_frontend/model/blocs/local_app_state_cubit.dart';
+import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
+import 'package:shopping_list_frontend/model/state/local_app_state.dart';
 import 'package:shopping_list_frontend/view/autocomplete_box.dart';
 import 'package:shopping_list_frontend/view/topic_page.dart';
 
@@ -15,7 +15,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   Future<void> _onPagePullRefreshed(BuildContext context) {
-    return context.read<ItemListBloc>().updateAlItemsAsync();
+    return context.read<ItemListBloc>().updateAlItems();
   }
 
   @override
@@ -29,12 +29,11 @@ class _MainPageState extends State<MainPage> {
           children: <Widget>[
             BlocBuilder<LocalAppStateCubit, LocalAppState>(
               builder: (BuildContext context, state) {
-                if (state.categoryForWhichItemsAreBeingAdded != null) {
+                if (state.activeCategory != null) {
                   return AutocompleteBox(
                       autocompleteEntries: context
                           .read<ItemListBloc>()
-                          .getItemsSeenForCategory(
-                              state.categoryForWhichItemsAreBeingAdded!));
+                          .getItemsSeenForCategory(state.activeCategory!));
                 } else {
                   return const SizedBox.shrink();
                 }

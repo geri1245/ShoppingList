@@ -1,13 +1,20 @@
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io' show Platform;
 
-import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
+import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
+
+const port = kReleaseMode ? '12568' : '3000';
 
 Uri getBackendUrl(String endpoint) {
+  if (kReleaseMode) {
+    return Uri.parse('http://10.8.0.1:$port/$endpoint');
+  }
+
   final baseUrl = (Platform.isAndroid || Platform.isIOS)
-      ? 'http://10.0.2.2:3000'
-      : 'http://localhost:3000';
+      ? 'http://10.0.2.2:$port'
+      : 'http://localhost:$port';
 
   return Uri.parse("$baseUrl/$endpoint");
 }
@@ -39,7 +46,8 @@ Future<RequestResult<Response>> fetchItems() async {
         await http.get(getBackendUrl('get_items')).timeout(serverTimeout);
 
     if (response.statusCode == 200) {
-      final responseMap = jsonDecode(response.body) as Map<String, dynamic>;
+      final responseMap =
+          jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
       final itemsJson = responseMap["items"] as List;
       final itemsSeenJson = responseMap["items_seen"] as Map<String, dynamic>;
 

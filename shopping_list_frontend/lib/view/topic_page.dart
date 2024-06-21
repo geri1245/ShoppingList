@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/data/model/item_list_bloc.dart';
-import 'package:shopping_list_frontend/data/state/item_list_state.dart';
+import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
+import 'package:shopping_list_frontend/model/state/item_list_state.dart';
 import 'package:shopping_list_frontend/view/items_list.dart';
 
 class TopicPage extends StatelessWidget {

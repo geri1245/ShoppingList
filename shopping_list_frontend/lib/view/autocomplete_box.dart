@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/data/model/local_app_state_cubit.dart';
-import 'package:shopping_list_frontend/data/itemList/events.dart';
-import 'package:shopping_list_frontend/data/model/item_list_bloc.dart';
-import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
-import 'package:shopping_list_frontend/data/state/local_app_state.dart';
+import 'package:shopping_list_frontend/model/blocs/local_app_state_cubit.dart';
+import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
+import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
+import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
+import 'package:shopping_list_frontend/model/state/local_app_state.dart';
 import 'package:shopping_list_frontend/view/number_input.dart';
 
 class AutocompleteBox extends StatefulWidget {
@@ -26,8 +26,7 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
     final stateCubit = context.read<LocalAppStateCubit>();
     context.read<ItemListBloc>().add(ItemAddedEvent(
           ShoppingItem(
-              category:
-                  stateCubit.getState().categoryForWhichItemsAreBeingAdded!,
+              category: stateCubit.getState().activeCategory!,
               itemName: selection.trim(),
               count: stateCubit.getState().numberToAdd),
         ));
@@ -64,7 +63,7 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
                   builder: (context, state) => Autocomplete(
                     optionsBuilder: (TextEditingValue textEditingValue) {
                       if (textEditingValue.text == '' ||
-                          state.categoryForWhichItemsAreBeingAdded == "") {
+                          state.activeCategory == "") {
                         return const Iterable<String>.empty();
                       }
 
@@ -100,18 +99,10 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
                       child: NumberInput(currentValue: state.numberToAdd));
                 },
               ),
+              const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 2, vertical: 4)),
               Expanded(
-                flex: 1,
-                child: IconButton(
-                  onPressed: () => _onCurrentTextAdded(context),
-                  icon: const Icon(
-                    Icons.add_circle_outline,
-                    color: Colors.lightBlue,
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
+                flex: 2,
                 child: IconButton(
                   onPressed: () {
                     context.read<LocalAppStateCubit>().stopAddingItems();

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/data/itemList/events.dart';
-import 'package:shopping_list_frontend/data/model/item_list_bloc.dart';
-import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
-import 'package:shopping_list_frontend/data/model/local_app_state_cubit.dart';
+import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
+import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
+import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
+import 'package:shopping_list_frontend/model/blocs/local_app_state_cubit.dart';
 
 class ItemsList extends StatelessWidget {
   const ItemsList({required this.categoryName, required this.items, super.key});

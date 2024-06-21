@@ -1,19 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/data/itemList/events.dart';
-import 'package:shopping_list_frontend/data/itemList/http_requests.dart';
-import 'package:shopping_list_frontend/data/itemList/item_list_status.dart';
-import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
-import 'package:shopping_list_frontend/data/state/item_list_state.dart';
+import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
+import 'package:shopping_list_frontend/model/networking/http_requests.dart';
+import 'package:shopping_list_frontend/model/itemList/item_list_status.dart';
+import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
+import 'package:shopping_list_frontend/model/state/item_list_state.dart';
 
 class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
   ItemListBloc()
       : super(ItemListState(
-            items: {},
-            status: ItemListStatus.ok,
-            itemsSeen: {},
-            categoryForWhichItemsAreBeingAdded: null)) {
+            items: {}, status: ItemListStatus.ok, itemsSeen: {})) {
     on<ItemAddedEvent>(_onItemAdded);
     on<ItemRemovedEvent>(_onItemCompleted);
     on<UpdateAllItemsEvent>(_updateAlItems);
@@ -28,8 +25,7 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
     var newState = ItemListState(
         items: state.items,
         status: ItemListStatus.ok,
-        itemsSeen: state.itemsSeen,
-        categoryForWhichItemsAreBeingAdded: null);
+        itemsSeen: state.itemsSeen);
 
     if (addToMap(newState.items, event.item)) {
       final responseCode = await addItem(event.item);
@@ -49,8 +45,7 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
     var newState = ItemListState(
         items: state.items,
         status: ItemListStatus.ok,
-        itemsSeen: state.itemsSeen,
-        categoryForWhichItemsAreBeingAdded: null);
+        itemsSeen: state.itemsSeen);
     if (removeFromMap(newState.items, event.item)) {
       final responseCode = await removeItem(event.item);
       newState.status =
@@ -68,6 +63,8 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
   ) async {
     final itemsResult = await fetchItems();
 
+    // This is only needed for the pull to refresh indicator, so it's not an issue if we are a little early with it
+    // The http request has already arrived and that should be slower than emitting the new state anyway
     if (_completer != null) {
       _completer?.complete();
       _completer = null;
@@ -77,18 +74,16 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
       emit(ItemListState(
           items: itemsResult.data!.items,
           status: ItemListStatus.ok,
-          itemsSeen: itemsResult.data!.itemsSeen,
-          categoryForWhichItemsAreBeingAdded: null));
+          itemsSeen: itemsResult.data!.itemsSeen));
     } else {
       emit(ItemListState(
           items: state.items,
           status: ItemListStatus.networkError,
-          itemsSeen: state.itemsSeen,
-          categoryForWhichItemsAreBeingAdded: null));
+          itemsSeen: state.itemsSeen));
     }
   }
 
-  Future<void> updateAlItemsAsync() {
+  Future<void> updateAlItems() {
     add(UpdateAllItemsEvent());
 
     if (_completer != null) {

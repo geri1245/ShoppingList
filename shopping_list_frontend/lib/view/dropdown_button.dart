@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/data/model/auto_complete_box_cubit.dart';
+import 'package:shopping_list_frontend/model/blocs/auto_complete_box_cubit.dart';
 import 'package:shopping_list_frontend/view/delete_popup_entry.dart';
 import 'package:shopping_list_frontend/view/text_input_dialog.dart';
 

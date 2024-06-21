@@ -1,9 +1,9 @@
 class LocalAppState {
   LocalAppState({
-    this.categoryForWhichItemsAreBeingAdded,
+    this.activeCategory,
     this.numberToAdd = 1,
   });
 
-  final String? categoryForWhichItemsAreBeingAdded;
+  final String? activeCategory;
   final int numberToAdd;
 }

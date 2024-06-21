@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/data/state/item_list_state.dart';
+import 'package:shopping_list_frontend/model/state/item_list_state.dart';
 import 'package:shopping_list_frontend/view/main_page.dart';
-import 'package:shopping_list_frontend/data/itemList/events.dart';
-import 'package:shopping_list_frontend/data/itemList/item_list_status.dart';
-import 'package:shopping_list_frontend/data/model/item_list_bloc.dart';
+import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
+import 'package:shopping_list_frontend/model/itemList/item_list_status.dart';
+import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
 
 void main() {
   runApp(const MyApp());
@@ -71,10 +71,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
               body: switch (state.status) {
-                ItemListStatus.ok => const MainPage(),
-                ItemListStatus.itemAlreadyInList => const MainPage(),
-                ItemListStatus.failedToRemoveItem => const MainPage(),
-                ItemListStatus.failedToAddItem => const MainPage(),
+                ItemListStatus.ok ||
+                ItemListStatus.itemAlreadyInList ||
+                ItemListStatus.failedToRemoveItem ||
+                ItemListStatus.failedToAddItem =>
+                  const MainPage(),
                 _ => Center(
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,

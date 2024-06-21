@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:shopping_list_frontend/data/itemList/shopping_item.dart';
+import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
 
 sealed class ItemListEvent extends Equatable {
   const ItemListEvent();

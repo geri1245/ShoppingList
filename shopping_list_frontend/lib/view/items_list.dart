@@ -44,6 +44,7 @@ class ItemsList extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           child: ListView.builder(
             padding: const EdgeInsets.all(8),
+            physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               final currentItem = items[index];
               return Row(

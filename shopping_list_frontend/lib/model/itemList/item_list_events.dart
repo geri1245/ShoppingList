@@ -17,7 +17,7 @@ final class ItemAddedEvent extends ItemListEvent {
 final class UpdateAllItemsEvent extends ItemListEvent {}
 
 final class ItemRemovedEvent extends ItemListEvent {
-  const ItemRemovedEvent(this.item);
+  const ItemRemovedEvent({required this.item});
 
   final ShoppingItem item;
 }
@@ -30,6 +30,12 @@ final class ErrorEvent extends ItemListEvent {
 
 final class StartAddingItemsEvent extends ItemListEvent {
   const StartAddingItemsEvent(this.category);
+
+  final String category;
+}
+
+final class DeleteCategoryEvent extends ItemListEvent {
+  const DeleteCategoryEvent(this.category);
 
   final String category;
 }

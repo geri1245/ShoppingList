@@ -58,9 +58,7 @@ class _DropdownButtonState extends State<CategoryDropdownButton> {
           color: Colors.deepPurple, overflow: TextOverflow.ellipsis),
       onChanged: (String? selectedItem) {
         if (selectedItem == addNewItemString) {
-          getTextInputWithDialog(context).then((String? newCategoryName) {
-            if (newCategoryName != null) {}
-          });
+          getTextInputWithDialog(context, (newCategoryName) {});
         } else if (selectedItem != null) {
           context.read<AutoCompleteBoxCubit>().setCategory(selectedItem);
         }

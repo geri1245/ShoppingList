@@ -5,6 +5,7 @@ import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
 import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
 import 'package:shopping_list_frontend/model/blocs/local_app_state_cubit.dart';
 
+// Describes a single list of items that are part of a category
 class ItemsList extends StatelessWidget {
   const ItemsList({required this.categoryName, required this.items, super.key});
 
@@ -12,7 +13,7 @@ class ItemsList extends StatelessWidget {
   final List<ShoppingItem> items;
 
   void _onItemChecked(BuildContext context, ShoppingItem item) {
-    context.read<ItemListBloc>().add(ItemRemovedEvent(item));
+    context.read<ItemListBloc>().add(ItemRemovedEvent(item: item));
   }
 
   @override
@@ -36,21 +37,41 @@ class ItemsList extends StatelessWidget {
                   Icons.add_circle_outline,
                   color: Colors.lightBlue,
                 ),
-              )
+              ),
+              // if (items.where((item) => item.itemName.isNotEmpty).isEmpty)
+              if (items.every((item) => item.itemName.isEmpty))
+                Expanded(
+                  flex: 1,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      // Try to guess the checkboxes' line and position it there
+                      padding: const EdgeInsets.symmetric(horizontal: 26.0),
+                      onPressed: () => context
+                          .read<ItemListBloc>()
+                          .add(DeleteCategoryEvent(categoryName)),
+                      icon: const Icon(
+                        Icons.delete_forever,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                )
             ],
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(16),
           child: ListView.builder(
-            padding: const EdgeInsets.all(8),
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
-              final currentItem = items[index];
+              final currentItem = items
+                  .where((item) => item.itemName.isNotEmpty)
+                  .elementAt(index);
               return Row(
                 children: [
                   Expanded(
-                    flex: 8,
+                    flex: 10,
                     child: Text(currentItem.itemName),
                   ),
                   Expanded(
@@ -61,7 +82,7 @@ class ItemsList extends StatelessWidget {
                     ),
                   ),
                   Expanded(
-                    flex: 1,
+                    flex: 3,
                     child: IconButton(
                         onPressed: () {
                           _onItemChecked(context, currentItem);
@@ -74,7 +95,8 @@ class ItemsList extends StatelessWidget {
                 ],
               );
             },
-            itemCount: items.length,
+            // Here we are handling the placeholder item - the builder method won't be called for it
+            itemCount: items.where((item) => item.itemName.isNotEmpty).length,
             shrinkWrap: true,
           ),
         ),

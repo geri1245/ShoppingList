@@ -4,7 +4,7 @@ import 'package:shopping_list_frontend/model/blocs/local_app_state_cubit.dart';
 import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
 import 'package:shopping_list_frontend/model/state/local_app_state.dart';
 import 'package:shopping_list_frontend/view/autocomplete_box.dart';
-import 'package:shopping_list_frontend/view/topic_page.dart';
+import 'package:shopping_list_frontend/view/item_tab.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -40,7 +40,7 @@ class _MainPageState extends State<MainPage> {
               },
             ),
             const Expanded(
-              child: TopicPage(),
+              child: ItemTab(),
             )
           ],
         ),

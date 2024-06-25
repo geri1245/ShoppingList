@@ -14,6 +14,7 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
     on<ItemAddedEvent>(_onItemAdded);
     on<ItemRemovedEvent>(_onItemCompleted);
     on<UpdateAllItemsEvent>(_updateAlItems);
+    on<DeleteCategoryEvent>(_onCategoryDeleted);
   }
 
   Completer? _completer;
@@ -80,6 +81,20 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
           items: state.items,
           status: ItemListStatus.networkError,
           itemsSeen: state.itemsSeen));
+    }
+  }
+
+  Future<void> _onCategoryDeleted(
+    DeleteCategoryEvent event,
+    Emitter<ItemListState> emit,
+  ) async {
+    if (state.items.containsKey(event.category) &&
+        state.items[event.category]!.length == 1) {
+      var itemToRemove = state.items[event.category]![0];
+      add(ItemRemovedEvent(item: itemToRemove));
+    } else {
+      emit(ItemListState.cloneWithChanges(state,
+          status: ItemListStatus.categoryNotEmptyOrDoesntExist));
     }
   }
 

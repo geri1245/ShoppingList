@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class TextInputDialog extends StatefulWidget {
-  const TextInputDialog({super.key});
+  const TextInputDialog({required this.callback, super.key});
+
+  final void Function(String) callback;
 
   @override
   State<TextInputDialog> createState() => _TextInputDialogState();
@@ -33,8 +35,8 @@ class _TextInputDialogState extends State<TextInputDialog> {
               children: [
                 TextButton(
                   onPressed: () {
-                    final text = _controller.text.trim();
-                    Navigator.pop(context, text);
+                    widget.callback(_controller.text.trim());
+                    Navigator.pop(context);
                   },
                   child: const Text('Add'),
                 ),
@@ -53,9 +55,12 @@ class _TextInputDialogState extends State<TextInputDialog> {
   }
 }
 
-Future<String?> getTextInputWithDialog(BuildContext context) {
+Future<String?> getTextInputWithDialog(
+    BuildContext context, void Function(String) callback) {
   return showDialog<String>(
     context: context,
-    builder: (BuildContext context) => const TextInputDialog(),
+    builder: (BuildContext context) => TextInputDialog(
+      callback: callback,
+    ),
   );
 }

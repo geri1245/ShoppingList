@@ -4,6 +4,8 @@ enum ItemListStatus {
   unknownError,
   networkError,
   itemAlreadyInList,
+  categoryAlreadyExists,
+  categoryNotEmptyOrDoesntExist,
   failedToAddItem,
   failedToRemoveItem
 }
@@ -16,6 +18,10 @@ String statusToErrorMessage(ItemListStatus status) {
       return "Couldn't connect to server 🔎❌🖥️";
     case ItemListStatus.itemAlreadyInList:
       return "This item is already in the list.";
+    case ItemListStatus.categoryAlreadyExists:
+      return "This category already exists.";
+    case ItemListStatus.categoryNotEmptyOrDoesntExist:
+      return "The category you tried to delete is not empty or doesn't exist.";
     case ItemListStatus.failedToAddItem:
       return "Something happened while trying to add the item to the list.";
     case ItemListStatus.failedToRemoveItem:

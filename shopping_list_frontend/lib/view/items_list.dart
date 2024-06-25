@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shopping_list_frontend/model/blocs/tap_position_cubit.dart';
 import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
 import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
 import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
 import 'package:shopping_list_frontend/model/blocs/local_app_state_cubit.dart';
+import 'package:shopping_list_frontend/view/popups/long_tap_item_action_popup_menu.dart';
+import 'package:shopping_list_frontend/view/popups/string_list_popup_menu.dart';
 
 // Describes a single list of items that are part of a category
 class ItemsList extends StatelessWidget {
@@ -14,6 +17,45 @@ class ItemsList extends StatelessWidget {
 
   void _onItemChecked(BuildContext context, ShoppingItem item) {
     context.read<ItemListBloc>().add(ItemRemovedEvent(item: item));
+  }
+
+  void _onItemLongTapActionSelected(
+      ItemLongTapAction? action,
+      BuildContext context,
+      ShoppingItem longTappedItem,
+      Offset tapPosition,
+      Size screenSize) {
+    if (action != null) {
+      switch (action) {
+        case ItemLongTapAction.moveToAnotherCategory:
+          final categories = context
+              .read<ItemListBloc>()
+              .state
+              .items
+              .keys
+              .where((element) => element != longTappedItem.category)
+              .toList();
+          if (categories.isNotEmpty) {
+            showStringListPopupMenu(
+                    context, tapPosition, screenSize, categories)
+                .then((selectedCategory) {
+              if (selectedCategory != null) {
+                context
+                    .read<ItemListBloc>()
+                    .add(ItemRemovedEvent(item: longTappedItem));
+                context.read<ItemListBloc>().add(ItemAddedEvent(ShoppingItem(
+                    category: selectedCategory,
+                    count: longTappedItem.count,
+                    itemName: longTappedItem.itemName)));
+              }
+            });
+          }
+        case ItemLongTapAction.delete:
+          context
+              .read<ItemListBloc>()
+              .add(ItemRemovedEvent(item: longTappedItem));
+      }
+    }
   }
 
   @override
@@ -62,42 +104,70 @@ class ItemsList extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.all(16),
-          child: ListView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              final currentItem = items
-                  .where((item) => item.itemName.isNotEmpty)
-                  .elementAt(index);
-              return Row(
-                children: [
-                  Expanded(
-                    flex: 10,
-                    child: Text(currentItem.itemName),
+          child: BlocProvider(
+            create: (context) => TapPositionStateCubit(),
+            child: ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                final currentItem = items
+                    .where((item) => item.itemName.isNotEmpty)
+                    .elementAt(index);
+                return GestureDetector(
+                  onLongPress: () async {
+                    final tapPosition = context
+                        .read<TapPositionStateCubit>()
+                        .getTapStartPosition();
+                    if (tapPosition != null) {
+                      final overlay =
+                          Overlay.of(context).context.findRenderObject();
+                      if (overlay != null) {
+                        final screenSize = overlay.semanticBounds.size;
+                        showItemLongTapActionMenu(
+                                context, tapPosition, screenSize)
+                            .then((action) => _onItemLongTapActionSelected(
+                                action,
+                                context,
+                                currentItem,
+                                tapPosition,
+                                screenSize));
+                      }
+                    }
+                  },
+                  onTapDown: (details) => context
+                      .read<TapPositionStateCubit>()
+                      .updateTapPosition(details.globalPosition),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 10,
+                        child: Text(currentItem.itemName),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(currentItem.count.toString()),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: IconButton(
+                            onPressed: () {
+                              _onItemChecked(context, currentItem);
+                            },
+                            icon: const Icon(
+                              Icons.check_circle_outline,
+                              color: Colors.lightBlue,
+                            )),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(currentItem.count.toString()),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: IconButton(
-                        onPressed: () {
-                          _onItemChecked(context, currentItem);
-                        },
-                        icon: const Icon(
-                          Icons.check_circle_outline,
-                          color: Colors.lightBlue,
-                        )),
-                  ),
-                ],
-              );
-            },
-            // Here we are handling the placeholder item - the builder method won't be called for it
-            itemCount: items.where((item) => item.itemName.isNotEmpty).length,
-            shrinkWrap: true,
+                );
+              },
+              // Here we are handling the placeholder item - the builder method won't be called for it
+              itemCount: items.where((item) => item.itemName.isNotEmpty).length,
+              shrinkWrap: true,
+            ),
           ),
         ),
       ],

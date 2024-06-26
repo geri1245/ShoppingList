@@ -8,6 +8,13 @@ import 'package:shopping_list_frontend/model/blocs/local_app_state_cubit.dart';
 import 'package:shopping_list_frontend/view/popups/long_tap_item_action_popup_menu.dart';
 import 'package:shopping_list_frontend/view/popups/string_list_popup_menu.dart';
 
+const paddingBetweenListItems = 8.0;
+const paddingAroundCategoryTitles = 12.0;
+const paddingAroundIcons = 12.0;
+const iconSize = 20.0;
+
+const fullListHorizontalPadding = 26.0;
+
 // Describes a single list of items that are part of a category
 class ItemsList extends StatelessWidget {
   const ItemsList({required this.categoryName, required this.items, super.key});
@@ -60,11 +67,13 @@ class ItemsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: fullListHorizontalPadding,
+          vertical: paddingAroundCategoryTitles),
+      child: Column(
+        children: [
+          Row(
             children: [
               Text(
                 categoryName,
@@ -72,6 +81,13 @@ class ItemsList extends StatelessWidget {
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               IconButton(
+                style: const ButtonStyle(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: paddingAroundIcons, vertical: 0),
+                constraints: const BoxConstraints(),
+                iconSize: iconSize,
                 onPressed: () => context
                     .read<LocalAppStateCubit>()
                     .startAddingItems(categoryName),
@@ -80,15 +96,21 @@ class ItemsList extends StatelessWidget {
                   color: Colors.lightBlue,
                 ),
               ),
-              // if (items.where((item) => item.itemName.isNotEmpty).isEmpty)
               if (items.every((item) => item.itemName.isEmpty))
                 Expanded(
                   flex: 1,
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: IconButton(
+                      style: const ButtonStyle(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       // Try to guess the checkboxes' line and position it there
-                      padding: const EdgeInsets.symmetric(horizontal: 26.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 26.0, vertical: 0),
+                      constraints: const BoxConstraints(),
+
+                      iconSize: iconSize,
                       onPressed: () => context
                           .read<ItemListBloc>()
                           .add(DeleteCategoryEvent(categoryName)),
@@ -101,10 +123,7 @@ class ItemsList extends StatelessWidget {
                 )
             ],
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: BlocProvider(
+          BlocProvider(
             create: (context) => TapPositionStateCubit(),
             child: ListView.builder(
               physics: const NeverScrollableScrollPhysics(),
@@ -136,31 +155,41 @@ class ItemsList extends StatelessWidget {
                   onTapDown: (details) => context
                       .read<TapPositionStateCubit>()
                       .updateTapPosition(details.globalPosition),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 10,
-                        child: Text(currentItem.itemName),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(currentItem.count.toString()),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: paddingBetweenListItems),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 10,
+                          child: Text(currentItem.itemName),
                         ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: IconButton(
-                            onPressed: () {
-                              _onItemChecked(context, currentItem);
-                            },
-                            icon: const Icon(
-                              Icons.check_circle_outline,
-                              color: Colors.lightBlue,
-                            )),
-                      ),
-                    ],
+                        Expanded(
+                          flex: 1,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(currentItem.count.toString()),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              style: const ButtonStyle(
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              iconSize: iconSize,
+                              onPressed: () {
+                                _onItemChecked(context, currentItem);
+                              },
+                              icon: const Icon(
+                                Icons.check_circle_outline,
+                                color: Colors.lightBlue,
+                              )),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -169,8 +198,8 @@ class ItemsList extends StatelessWidget {
               shrinkWrap: true,
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:shopping_list_frontend/model/blocs/local_app_state_cubit.dart';
 import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
 import 'package:shopping_list_frontend/model/state/local_app_state.dart';
@@ -14,6 +17,23 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  late StreamSubscription<bool> keyboardSubscription;
+  bool keyboardHasJustClosed = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    var keyboardVisibilityController = KeyboardVisibilityController();
+
+    keyboardSubscription =
+        keyboardVisibilityController.onChange.listen((bool visible) {
+      if (!visible) {
+        setState(() => keyboardHasJustClosed = true);
+      }
+    });
+  }
+
   Future<void> _onPagePullRefreshed(BuildContext context) {
     return context.read<ItemListBloc>().updateAlItems();
   }
@@ -29,12 +49,17 @@ class _MainPageState extends State<MainPage> {
           children: <Widget>[
             BlocBuilder<LocalAppStateCubit, LocalAppState>(
               builder: (BuildContext context, state) {
-                if (state.activeCategory != null) {
+                // Show the keyboard when we start adding items to a category
+                // If the keyboard is dismissed, then we set keyboardHasJustClosed,
+                // so we can dismiss the AutocompleteBox when the user dismisses the keyboard
+                if (state.activeCategory != null && !keyboardHasJustClosed) {
                   return AutocompleteBox(
                       autocompleteEntries: context
                           .read<ItemListBloc>()
                           .getItemsSeenForCategory(state.activeCategory!));
                 } else {
+                  keyboardHasJustClosed = false;
+                  context.read<LocalAppStateCubit>().stopAddingItems();
                   return const SizedBox.shrink();
                 }
               },

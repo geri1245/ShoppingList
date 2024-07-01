@@ -198,6 +198,13 @@ class ItemsList extends StatelessWidget {
               shrinkWrap: true,
             ),
           ),
+          const Divider(
+            color: Colors.blueAccent,
+            height: 0,
+            indent: 16,
+            endIndent: 16,
+            thickness: 0.0,
+          )
         ],
       ),
     );

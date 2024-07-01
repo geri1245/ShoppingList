@@ -4,7 +4,7 @@ import 'package:shopping_list_frontend/model/blocs/tap_position_cubit.dart';
 import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
 import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
 import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
-import 'package:shopping_list_frontend/model/blocs/local_app_state_cubit.dart';
+import 'package:shopping_list_frontend/model/blocs/adding_items_control_cubit.dart';
 import 'package:shopping_list_frontend/view/popups/long_tap_item_action_popup_menu.dart';
 import 'package:shopping_list_frontend/view/popups/string_list_popup_menu.dart';
 
@@ -89,7 +89,7 @@ class ItemsList extends StatelessWidget {
                 constraints: const BoxConstraints(),
                 iconSize: iconSize,
                 onPressed: () => context
-                    .read<LocalAppStateCubit>()
+                    .read<AddingItemsControlCubit>()
                     .startAddingItems(categoryName),
                 icon: const Icon(
                   Icons.add_circle_outline,

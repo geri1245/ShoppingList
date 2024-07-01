@@ -1,5 +1,5 @@
-class LocalAppState {
-  LocalAppState({
+class AddingItemsControlState {
+  AddingItemsControlState({
     this.activeCategory,
     this.numberToAdd = 1,
   });

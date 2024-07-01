@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/model/blocs/local_app_state_cubit.dart';
+import 'package:shopping_list_frontend/model/blocs/adding_items_control_cubit.dart';
 import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
 import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
 import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
-import 'package:shopping_list_frontend/model/state/local_app_state.dart';
+import 'package:shopping_list_frontend/model/state/adding_items_control_state.dart';
 import 'package:shopping_list_frontend/view/number_input.dart';
 
 class AutocompleteBox extends StatefulWidget {
@@ -23,7 +23,7 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
   late TextEditingController _textEditingController;
 
   void _onItemSelected(BuildContext context, String selection) {
-    final stateCubit = context.read<LocalAppStateCubit>();
+    final stateCubit = context.read<AddingItemsControlCubit>();
     context.read<ItemListBloc>().add(ItemAddedEvent(
           ShoppingItem(
               category: stateCubit.getState().activeCategory!,
@@ -43,7 +43,7 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
 
   void _onPopInvoked(bool didPop) {
     if (!didPop) {
-      context.read<LocalAppStateCubit>().stopAddingItems();
+      context.read<AddingItemsControlCubit>().stopAddingItems();
     }
   }
 
@@ -59,7 +59,8 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
             Row(children: [
               Expanded(
                 flex: 7,
-                child: BlocBuilder<LocalAppStateCubit, LocalAppState>(
+                child: BlocBuilder<AddingItemsControlCubit,
+                    AddingItemsControlState>(
                   builder: (context, state) => Autocomplete(
                     optionsBuilder: (TextEditingValue textEditingValue) {
                       if (textEditingValue.text == '' ||
@@ -102,7 +103,7 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
                   ),
                 ),
               ),
-              BlocBuilder<LocalAppStateCubit, LocalAppState>(
+              BlocBuilder<AddingItemsControlCubit, AddingItemsControlState>(
                 builder: (BuildContext context, state) {
                   return Expanded(
                       flex: 4,
@@ -115,7 +116,7 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
                 flex: 2,
                 child: IconButton(
                   onPressed: () {
-                    context.read<LocalAppStateCubit>().stopAddingItems();
+                    context.read<AddingItemsControlCubit>().stopAddingItems();
                   },
                   icon: const Icon(
                     Icons.arrow_back,

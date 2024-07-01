@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
-import 'package:shopping_list_frontend/model/blocs/local_app_state_cubit.dart';
+import 'package:shopping_list_frontend/model/blocs/adding_items_control_cubit.dart';
 import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
 import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
 import 'package:shopping_list_frontend/model/state/item_list_state.dart';
@@ -59,7 +59,7 @@ class ItemTab extends StatelessWidget {
                           .keys
                           .contains(newCategory)) {
                         context
-                            .read<LocalAppStateCubit>()
+                            .read<AddingItemsControlCubit>()
                             .startAddingItems(newCategory);
                       }
                     }

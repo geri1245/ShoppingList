@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/model/blocs/local_app_state_cubit.dart';
+import 'package:shopping_list_frontend/model/blocs/adding_items_control_cubit.dart';
 
 class NumberInput extends StatelessWidget {
   const NumberInput({required this.currentValue, super.key});
@@ -13,7 +13,7 @@ class NumberInput extends StatelessWidget {
       children: [
         IconButton(
           onPressed: () => context
-              .read<LocalAppStateCubit>()
+              .read<AddingItemsControlCubit>()
               .updateQuantity(currentValue - 1),
           icon: const Icon(
             Icons.remove,
@@ -23,7 +23,7 @@ class NumberInput extends StatelessWidget {
         Text(currentValue.toString()),
         IconButton(
           onPressed: () => context
-              .read<LocalAppStateCubit>()
+              .read<AddingItemsControlCubit>()
               .updateQuantity(currentValue + 1),
           icon: const Icon(
             Icons.add,

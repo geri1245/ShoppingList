@@ -67,11 +67,21 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
                         return const Iterable<String>.empty();
                       }
 
-                      return widget.autocompleteEntries
-                          .where((String stringToSearchFor) {
-                        return stringToSearchFor
-                            .contains(textEditingValue.text.toLowerCase());
+                      // First search for those items, where the match is at the beginning, those should come first
+                      // Then we append the matches that are somewhere in the middle/end of the words
+                      final stringToSearchFor =
+                          textEditingValue.text.toLowerCase();
+                      final matchesBeginning = widget.autocompleteEntries
+                          .where((String stringToSearchIn) {
+                        return stringToSearchIn.startsWith(stringToSearchFor);
                       });
+                      final matchesElsewhere = widget.autocompleteEntries
+                          .where((String stringToSearchIn) {
+                        return stringToSearchIn.contains(stringToSearchFor) &&
+                            !stringToSearchIn.startsWith(stringToSearchFor);
+                      });
+
+                      return matchesBeginning.followedBy(matchesElsewhere);
                     },
                     fieldViewBuilder: (context, textEditingController,
                         focusNode, onFieldSubmitted) {

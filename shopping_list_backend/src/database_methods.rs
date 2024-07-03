@@ -3,11 +3,9 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::{database_manager::DatabaseManager, ShoppingItem};
+use crate::{database_manager::DatabaseManager, item_definitions::ItemToFind, Item};
 
-pub async fn get_all_items(
-    db_manager: &Arc<Mutex<DatabaseManager>>,
-) -> anyhow::Result<Vec<ShoppingItem>> {
+pub async fn get_all_items(db_manager: &Arc<Mutex<DatabaseManager>>) -> anyhow::Result<Vec<Item>> {
     let db_manager = db_manager.lock().unwrap();
 
     db_manager.get_all_items()
@@ -32,10 +30,10 @@ pub async fn get_all_items_seen(
     Ok(category_to_items_map)
 }
 
-pub async fn add_item(db_manager: &Arc<Mutex<DatabaseManager>>, item: &ShoppingItem) -> bool {
+pub async fn add_item(db_manager: &Arc<Mutex<DatabaseManager>>, item: &Item) -> bool {
     let db_manager = db_manager.lock().unwrap();
 
-    match db_manager.contains(&item.name, &item.category) {
+    match db_manager.contains(ItemToFind::from_item(item)) {
         Ok(true) => false,
         Ok(false) => match db_manager.add_to_items(item) {
             Ok(_) => {
@@ -49,16 +47,13 @@ pub async fn add_item(db_manager: &Arc<Mutex<DatabaseManager>>, item: &ShoppingI
     }
 }
 
-pub async fn remove_item(db_manager: &Arc<Mutex<DatabaseManager>>, item: &ShoppingItem) -> bool {
+pub async fn remove_item(db_manager: &Arc<Mutex<DatabaseManager>>, item: &Item) -> bool {
     let db_manager = db_manager.lock().unwrap();
 
     db_manager.delete_item(item).is_ok()
 }
 
-pub async fn remove_item_from_seen(
-    db_manager: &Arc<Mutex<DatabaseManager>>,
-    item: &ShoppingItem,
-) -> bool {
+pub async fn remove_item_from_seen(db_manager: &Arc<Mutex<DatabaseManager>>, item: &Item) -> bool {
     let db_manager = db_manager.lock().unwrap();
 
     db_manager.delete_item_from_seen(item).is_ok()

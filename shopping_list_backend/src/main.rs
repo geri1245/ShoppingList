@@ -1,5 +1,6 @@
 mod database_manager;
 mod database_methods;
+mod item_definitions;
 mod string_utils;
 
 use axum::{
@@ -10,6 +11,7 @@ use axum::{
 use database_methods::{
     add_item, get_all_items, get_all_items_seen, remove_item, remove_item_from_seen,
 };
+use item_definitions::{AppState, Item};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -59,7 +61,7 @@ async fn get_items_handler(state: Extension<Arc<AppState>>) -> (StatusCode, Json
 
 async fn add_item_handler(
     state: Extension<Arc<AppState>>,
-    Json(payload): Json<ShoppingItem>,
+    Json(payload): Json<Item>,
 ) -> (StatusCode, Json<()>) {
     if add_item(&state.0.db_manager, &payload).await {
         (StatusCode::OK, Json(()))
@@ -70,7 +72,7 @@ async fn add_item_handler(
 
 async fn delete_item_handler(
     state: Extension<Arc<AppState>>,
-    Json(payload): Json<ShoppingItem>,
+    Json(payload): Json<Item>,
 ) -> (StatusCode, Json<()>) {
     if remove_item(&state.0.db_manager, &payload).await {
         (StatusCode::OK, Json(()))
@@ -81,7 +83,7 @@ async fn delete_item_handler(
 
 async fn delete_item_from_seen_handler(
     state: Extension<Arc<AppState>>,
-    Json(payload): Json<ShoppingItem>,
+    Json(payload): Json<Item>,
 ) -> (StatusCode, Json<()>) {
     if remove_item_from_seen(&state.0.db_manager, &payload).await {
         (StatusCode::OK, Json(()))
@@ -91,20 +93,8 @@ async fn delete_item_from_seen_handler(
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ShoppingItem {
-    name: String,
-    quantity: u32,
-    category: String,
-}
-
-#[derive(Clone)]
-pub struct AppState {
-    db_manager: Arc<Mutex<database_manager::DatabaseManager>>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 struct Response {
-    items: Vec<ShoppingItem>,
+    items: Vec<Item>,
     items_seen: HashMap<String, Vec<String>>,
 }
 

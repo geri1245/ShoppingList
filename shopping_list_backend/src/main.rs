@@ -11,10 +11,9 @@ use axum::{
 use database_methods::{
     add_item, get_all_items, get_all_items_seen, remove_item, remove_item_from_seen,
 };
-use item_definitions::{AppState, Item};
+use item_definitions::{AppState, Item, ItemWithoutQuantity};
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::HashMap,
     net::SocketAddr,
     sync::{Arc, Mutex},
 };
@@ -95,14 +94,14 @@ async fn delete_item_from_seen_handler(
 #[derive(Debug, Serialize, Deserialize)]
 struct Response {
     items: Vec<Item>,
-    items_seen: HashMap<String, Vec<String>>,
+    items_seen: Vec<ItemWithoutQuantity>,
 }
 
 impl Response {
     pub fn empty() -> Self {
         Response {
             items: Vec::new(),
-            items_seen: HashMap::new(),
+            items_seen: Vec::new(),
         }
     }
 }

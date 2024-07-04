@@ -12,6 +12,13 @@ pub struct Item {
     pub sub_category: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ItemWithoutQuantity {
+    pub name: String,
+    pub main_category: String,
+    pub sub_category: String,
+}
+
 // Used to find items in the database (as quantity doesn't matter in those cases)
 pub struct ItemToFind<'a> {
     pub name: &'a str,

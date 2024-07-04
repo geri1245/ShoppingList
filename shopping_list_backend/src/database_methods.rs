@@ -1,9 +1,10 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
-use crate::{database_manager::DatabaseManager, item_definitions::ItemToFind, Item};
+use crate::{
+    database_manager::DatabaseManager,
+    item_definitions::{ItemToFind, ItemWithoutQuantity},
+    Item,
+};
 
 pub async fn get_all_items(db_manager: &Arc<Mutex<DatabaseManager>>) -> anyhow::Result<Vec<Item>> {
     let db_manager = db_manager.lock().unwrap();
@@ -13,21 +14,10 @@ pub async fn get_all_items(db_manager: &Arc<Mutex<DatabaseManager>>) -> anyhow::
 
 pub async fn get_all_items_seen(
     db_manager: &Arc<Mutex<DatabaseManager>>,
-) -> anyhow::Result<HashMap<String, Vec<String>>> {
+) -> anyhow::Result<Vec<ItemWithoutQuantity>> {
     let db_manager = db_manager.lock().unwrap();
 
-    let items = db_manager.get_seen_items()?;
-    let mut category_to_items_map: HashMap<String, Vec<String>> = HashMap::new();
-
-    for (category, name) in items.into_iter() {
-        if let Some(items) = category_to_items_map.get_mut(&category) {
-            items.push(name.to_lowercase());
-        } else {
-            category_to_items_map.insert(category, vec![name.to_lowercase()]);
-        }
-    }
-
-    Ok(category_to_items_map)
+    db_manager.get_seen_items()
 }
 
 pub async fn add_item(db_manager: &Arc<Mutex<DatabaseManager>>, item: &Item) -> bool {

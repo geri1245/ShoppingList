@@ -4,6 +4,9 @@ use anyhow::anyhow;
 use rusqlite::types::FromSql;
 use rusqlite::{Connection, Error, Result, Row};
 
+use crate::item_definitions::{ItemToFind, ItemWithoutQuantity};
+use crate::Item;
+
 const ITEMS_TABLE_NAME: &'static str = "ShoppingList";
 const ITEMS_SEEN_TABLE_NAME: &'static str = "ItemsSeen";
 const NAME_COLUMN_NAME: &'static str = "name";
@@ -33,9 +36,6 @@ pub struct DatabaseManager {
     connection: Connection,
     _user_name: String,
 }
-
-use crate::item_definitions::ItemToFind;
-use crate::Item;
 
 impl DatabaseManager {
     fn create_tables(&self) -> Result<()> {
@@ -84,13 +84,14 @@ impl DatabaseManager {
         )
     }
 
-    pub fn get_seen_items(&self) -> anyhow::Result<Vec<(String, String)>> {
+    pub fn get_seen_items(&self) -> anyhow::Result<Vec<ItemWithoutQuantity>> {
         self.get_all(
             &|row| {
-                Ok((
-                    row.get(MAIN_CATEGORY_COLUMN_NAME)?,
-                    row.get(NAME_COLUMN_NAME)?,
-                ))
+                Ok(ItemWithoutQuantity {
+                    main_category: row.get(MAIN_CATEGORY_COLUMN_NAME)?,
+                    sub_category: row.get(SUB_CATEGORY_COLUMN_NAME)?,
+                    name: row.get(NAME_COLUMN_NAME)?,
+                })
             },
             Table::ItemsSeen,
         )
@@ -150,7 +151,10 @@ impl DatabaseManager {
         match self.get_where(item_to_find) {
             Ok(QueryResult::Ok(_)) => Ok(true),
             Ok(QueryResult::NoRowsReturned) => Ok(false),
-            Err(error) => Err(anyhow!(error)),
+            Err(error) => {
+                println!("{:?}", error);
+                Err(anyhow!(error))
+            }
         }
     }
 

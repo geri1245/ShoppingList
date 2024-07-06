@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/model/blocs/adding_items_control_cubit.dart';
-import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
-import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
-import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
-import 'package:shopping_list_frontend/model/state/adding_items_control_state.dart';
 import 'package:shopping_list_frontend/view/number_input.dart';
 
+typedef ItemAddedFunction = void Function(String addedItem, int quantity);
+typedef DismissedFunction = void Function();
+
 class AutocompleteBox extends StatefulWidget {
-  const AutocompleteBox({required this.autocompleteEntries, super.key});
+  const AutocompleteBox(
+      {required this.autocompleteEntries,
+      required this.itemAddedFunction,
+      required this.dismissedFunction,
+      super.key});
 
   final List<String> autocompleteEntries;
+  final ItemAddedFunction itemAddedFunction;
+  final DismissedFunction dismissedFunction;
 
   @override
   State<StatefulWidget> createState() {
@@ -21,112 +24,93 @@ class AutocompleteBox extends StatefulWidget {
 class AutocompleteBoxState extends State<AutocompleteBox> {
   late FocusNode _focusNode;
   late TextEditingController _textEditingController;
+  int numberToAdd = 1;
 
   void _onItemSelected(BuildContext context, String selection) {
-    final stateCubit = context.read<AddingItemsControlCubit>();
-    context.read<ItemListBloc>().add(ItemAddedEvent(
-          ShoppingItem(
-              category: stateCubit.getState().activeCategory!,
-              itemName: selection.trim(),
-              count: stateCubit.getState().numberToAdd),
-        ));
+    widget.itemAddedFunction(selection, numberToAdd);
+
     _textEditingController.clear();
     _focusNode.requestFocus();
-    stateCubit.updateQuantity(1);
   }
 
   void _onCurrentTextAdded(BuildContext context) {
-    if (_textEditingController.text.isNotEmpty) {
+    if (_textEditingController.text.isEmpty) {
+      widget.dismissedFunction();
+    } else {
       _onItemSelected(context, _textEditingController.text);
-    }
-  }
-
-  void _onPopInvoked(bool didPop) {
-    if (!didPop) {
-      context.read<AddingItemsControlCubit>().stopAddingItems();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvoked: _onPopInvoked,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(children: [
-              Expanded(
-                flex: 7,
-                child: BlocBuilder<AddingItemsControlCubit,
-                    AddingItemsControlState>(
-                  builder: (context, state) => Autocomplete(
-                    optionsBuilder: (TextEditingValue textEditingValue) {
-                      if (textEditingValue.text == '' ||
-                          state.activeCategory == "") {
-                        return const Iterable<String>.empty();
-                      }
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Row(children: [
+            Expanded(
+              flex: 7,
+              child: Autocomplete(
+                optionsViewOpenDirection: OptionsViewOpenDirection.up,
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text == '') {
+                    return const Iterable<String>.empty();
+                  }
 
-                      // First search for those items, where the match is at the beginning, those should come first
-                      // Then we append the matches that are somewhere in the middle/end of the words
-                      final stringToSearchFor =
-                          textEditingValue.text.toLowerCase();
-                      final matchesBeginning = widget.autocompleteEntries
-                          .where((String stringToSearchIn) {
-                        return stringToSearchIn.startsWith(stringToSearchFor);
-                      });
-                      final matchesElsewhere = widget.autocompleteEntries
-                          .where((String stringToSearchIn) {
-                        return stringToSearchIn.contains(stringToSearchFor) &&
-                            !stringToSearchIn.startsWith(stringToSearchFor);
-                      });
+                  // First search for those items, where the match is at the beginning, those should come first
+                  // Then we append the matches that are somewhere in the middle/end of the words
+                  final stringToSearchFor = textEditingValue.text.toLowerCase();
+                  final matchesBeginning = widget.autocompleteEntries
+                      .where((String stringToSearchIn) {
+                    return stringToSearchIn.startsWith(stringToSearchFor);
+                  });
+                  final matchesElsewhere = widget.autocompleteEntries
+                      .where((String stringToSearchIn) {
+                    return stringToSearchIn.contains(stringToSearchFor) &&
+                        !stringToSearchIn.startsWith(stringToSearchFor);
+                  });
 
-                      return matchesBeginning.followedBy(matchesElsewhere);
-                    },
-                    fieldViewBuilder: (context, textEditingController,
-                        focusNode, onFieldSubmitted) {
-                      _textEditingController = textEditingController;
-                      _focusNode = focusNode;
-                      _focusNode.requestFocus();
-
-                      return TextFormField(
-                        controller: textEditingController,
-                        focusNode: focusNode,
-                        onFieldSubmitted: (String value) {
-                          _onCurrentTextAdded(context);
-                        },
-                      );
-                    },
-                    onSelected: (selectedItem) =>
-                        _onItemSelected(context, selectedItem),
-                  ),
-                ),
-              ),
-              BlocBuilder<AddingItemsControlCubit, AddingItemsControlState>(
-                builder: (BuildContext context, state) {
-                  return Expanded(
-                      flex: 4,
-                      child: NumberInput(currentValue: state.numberToAdd));
+                  return matchesBeginning.followedBy(matchesElsewhere);
                 },
+                fieldViewBuilder: (context, textEditingController, focusNode,
+                    onFieldSubmitted) {
+                  _textEditingController = textEditingController;
+                  _focusNode = focusNode;
+                  _focusNode.requestFocus();
+
+                  return TextFormField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    onFieldSubmitted: (String value) {
+                      _onCurrentTextAdded(context);
+                    },
+                  );
+                },
+                onSelected: (selectedItem) =>
+                    _onItemSelected(context, selectedItem),
               ),
-              const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 2, vertical: 4)),
-              Expanded(
-                flex: 2,
-                child: IconButton(
-                  onPressed: () {
-                    context.read<AddingItemsControlCubit>().stopAddingItems();
-                  },
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.greenAccent,
-                  ),
+            ),
+            Expanded(
+                flex: 4,
+                child: NumberInput(
+                  onNumberChanged: (number) => numberToAdd = number,
+                )),
+            const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 2, vertical: 4)),
+            Expanded(
+              flex: 2,
+              child: IconButton(
+                onPressed: () {
+                  widget.dismissedFunction();
+                },
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.greenAccent,
                 ),
-              )
-            ]),
-          ],
-        ),
+              ),
+            )
+          ]),
+        ],
       ),
     );
   }

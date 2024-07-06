@@ -5,6 +5,7 @@ import 'package:shopping_list_frontend/view/main_page.dart';
 import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
 import 'package:shopping_list_frontend/model/itemList/item_list_status.dart';
 import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
+import 'package:shopping_list_frontend/view/waiting_for_network.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,18 +19,16 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Todo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Todo List'),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -59,40 +58,9 @@ class _MyHomePageState extends State<MyHomePage> {
           buildWhen: (previous, current) => previous.status != current.status,
           builder: (context, state) => Scaffold(
               resizeToAvoidBottomInset: false,
-              appBar: AppBar(
-                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-                title: Text(widget.title),
-                actions: [
-                  IconButton(
-                    onPressed: () =>
-                        context.read<ItemListBloc>().add(UpdateAllItemsEvent()),
-                    icon: const Icon(Icons.refresh),
-                  )
-                ],
-              ),
               body: switch (state.status) {
-                ItemListStatus.ok ||
-                ItemListStatus.itemAlreadyInList ||
-                ItemListStatus.failedToRemoveItem ||
-                ItemListStatus.failedToAddItem =>
-                  const MainPage(),
-                _ => Center(
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextButton(
-                            onPressed: () => context
-                                .read<ItemListBloc>()
-                                .add(UpdateAllItemsEvent()),
-                            child: const Text("Press to reconnect"),
-                          ),
-                          Image.asset(
-                            "images/loading.gif",
-                            height: 150.0,
-                            width: 150.0,
-                          ),
-                        ]),
-                  ),
+                ItemListStatus.networkError => const WaitingForNetwork(),
+                _ => MainPage(items: state.items),
               }),
         ),
       ),

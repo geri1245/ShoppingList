@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
 import 'package:shopping_list_frontend/model/networking/http_requests.dart';
 import 'package:shopping_list_frontend/model/itemList/item_list_status.dart';
-import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
+import 'package:shopping_list_frontend/model/itemList/list_item.dart';
 import 'package:shopping_list_frontend/model/state/item_list_state.dart';
 
 class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
@@ -23,39 +23,43 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
     ItemAddedEvent event,
     Emitter<ItemListState> emit,
   ) async {
-    var newState = ItemListState(
-        items: state.items,
-        status: ItemListStatus.ok,
-        itemsSeen: state.itemsSeen);
+    final (newMap, couldAddItem) =
+        addItemToCategoryMap(state.items, event.item);
 
-    if (addToMap(newState.items, event.item)) {
+    if (couldAddItem) {
       final responseCode = await addItem(event.item);
-      newState.status =
-          responseCode == 200 ? ItemListStatus.ok : ItemListStatus.networkError;
-    } else {
-      newState.status = ItemListStatus.itemAlreadyInList;
-    }
+      final newStatus = switch (responseCode) {
+        200 => ItemListStatus.ok,
+        409 => ItemListStatus.failedToAddItem,
+        _ => ItemListStatus.unknownError,
+      };
 
-    emit(newState);
+      emit(ItemListState.cloneWithChanges(state,
+          status: newStatus, items: newMap));
+    } else {
+      emit(ItemListState.cloneWithChanges(state,
+          status: ItemListStatus.itemAlreadyInList));
+    }
   }
 
   Future<void> _onItemCompleted(
     ItemRemovedEvent event,
     Emitter<ItemListState> emit,
   ) async {
-    var newState = ItemListState(
-        items: state.items,
-        status: ItemListStatus.ok,
-        itemsSeen: state.itemsSeen);
-    if (removeFromMap(newState.items, event.item)) {
+    final (newMap, couldRemove) = removeFromMap(state.items, event.item);
+    if (couldRemove) {
       final responseCode = await removeItem(event.item);
-      newState.status =
-          responseCode == 200 ? ItemListStatus.ok : ItemListStatus.networkError;
+      final newStatus = switch (responseCode) {
+        200 => ItemListStatus.ok,
+        409 => ItemListStatus.failedToRemoveItem,
+        _ => ItemListStatus.unknownError,
+      };
+      emit(ItemListState.cloneWithChanges(state,
+          status: newStatus, items: newMap));
     } else {
-      newState.status = ItemListStatus.failedToRemoveItem;
+      emit(ItemListState.cloneWithChanges(state,
+          status: ItemListStatus.failedToRemoveItem));
     }
-
-    emit(newState);
   }
 
   Future<void> _updateAlItems(
@@ -88,9 +92,9 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
     DeleteCategoryEvent event,
     Emitter<ItemListState> emit,
   ) async {
-    if (state.items.containsKey(event.category) &&
-        state.items[event.category]!.length == 1) {
-      var itemToRemove = state.items[event.category]![0];
+    if (state.items[event.mainCategory]?[event.subCategory]?.length == 1) {
+      var itemToRemove =
+          state.items[event.mainCategory]![event.subCategory]![0];
       add(ItemRemovedEvent(item: itemToRemove));
     } else {
       emit(ItemListState.cloneWithChanges(state,
@@ -109,7 +113,8 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
     return _completer!.future;
   }
 
-  List<String> getItemsSeenForCategory(String category) {
-    return state.itemsSeen[category] ?? [];
+  List<String> getItemsSeenForCategory(
+      {required String mainCategory, required String subCategory}) {
+    return state.itemsSeen[mainCategory]?[subCategory] ?? [];
   }
 }

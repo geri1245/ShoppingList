@@ -35,8 +35,9 @@ class _TextInputDialogState extends State<TextInputDialog> {
               children: [
                 TextButton(
                   onPressed: () {
-                    widget.callback(_controller.text.trim());
-                    Navigator.pop(context);
+                    final result = _controller.text.trim();
+                    widget.callback(result);
+                    Navigator.pop(context, result);
                   },
                   child: const Text('Add'),
                 ),

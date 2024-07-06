@@ -1,20 +1,30 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shopping_list_frontend/model/blocs/adding_items_control_cubit.dart';
 
-class NumberInput extends StatelessWidget {
-  const NumberInput({required this.currentValue, super.key});
+typedef NumberChangedFunction = void Function(int number);
 
-  final int currentValue;
+class NumberInput extends StatefulWidget {
+  const NumberInput({required this.onNumberChanged, super.key});
+
+  final NumberChangedFunction onNumberChanged;
+
+  @override
+  State<NumberInput> createState() => _NumberInputState();
+}
+
+class _NumberInputState extends State<NumberInput> {
+  int currentValue = 1;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         IconButton(
-          onPressed: () => context
-              .read<AddingItemsControlCubit>()
-              .updateQuantity(currentValue - 1),
+          onPressed: () => setState(() {
+            currentValue = max(currentValue - 1, 1);
+            widget.onNumberChanged(currentValue);
+          }),
           icon: const Icon(
             Icons.remove,
             color: Colors.lightBlue,
@@ -22,9 +32,10 @@ class NumberInput extends StatelessWidget {
         ),
         Text(currentValue.toString()),
         IconButton(
-          onPressed: () => context
-              .read<AddingItemsControlCubit>()
-              .updateQuantity(currentValue + 1),
+          onPressed: () => setState(() {
+            currentValue += 1;
+            widget.onNumberChanged(currentValue);
+          }),
           icon: const Icon(
             Icons.add,
             color: Colors.lightBlue,

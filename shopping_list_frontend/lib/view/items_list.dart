@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shopping_list_frontend/model/blocs/tap_position_cubit.dart';
 import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
 import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
-import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
-import 'package:shopping_list_frontend/model/blocs/adding_items_control_cubit.dart';
+import 'package:shopping_list_frontend/model/itemList/list_item.dart';
+import 'package:shopping_list_frontend/view/popups/bottom_sheet_autocomplete.dart';
 import 'package:shopping_list_frontend/view/popups/long_tap_item_action_popup_menu.dart';
 import 'package:shopping_list_frontend/view/popups/string_list_popup_menu.dart';
 
@@ -12,24 +12,30 @@ const paddingBetweenListItems = 8.0;
 const paddingAroundCategoryTitles = 12.0;
 const paddingAroundIcons = 12.0;
 const iconSize = 20.0;
+const dividerIndent = 16.0;
 
 const fullListHorizontalPadding = 26.0;
 
 // Describes a single list of items that are part of a category
 class ItemsList extends StatelessWidget {
-  const ItemsList({required this.categoryName, required this.items, super.key});
+  const ItemsList(
+      {required this.subCategoryName,
+      required this.mainCategoryName,
+      required this.items,
+      super.key});
 
-  final String categoryName;
-  final List<ShoppingItem> items;
+  final String mainCategoryName;
+  final String subCategoryName;
+  final List<Item> items;
 
-  void _onItemChecked(BuildContext context, ShoppingItem item) {
+  void _onItemChecked(BuildContext context, Item item) {
     context.read<ItemListBloc>().add(ItemRemovedEvent(item: item));
   }
 
   void _onItemLongTapActionSelected(
       ItemLongTapAction? action,
       BuildContext context,
-      ShoppingItem longTappedItem,
+      Item longTappedItem,
       Offset tapPosition,
       Size screenSize) {
     if (action != null) {
@@ -40,20 +46,20 @@ class ItemsList extends StatelessWidget {
               .state
               .items
               .keys
-              .where((element) => element != longTappedItem.category)
+              .where((element) => element != longTappedItem.mainCategory)
               .toList();
           if (categories.isNotEmpty) {
             showStringListPopupMenu(
                     context, tapPosition, screenSize, categories)
                 .then((selectedCategory) {
               if (selectedCategory != null) {
-                context
-                    .read<ItemListBloc>()
-                    .add(ItemRemovedEvent(item: longTappedItem));
-                context.read<ItemListBloc>().add(ItemAddedEvent(ShoppingItem(
-                    category: selectedCategory,
+                final itemListBloc = context.read<ItemListBloc>();
+                itemListBloc.add(ItemRemovedEvent(item: longTappedItem));
+                itemListBloc.add(ItemAddedEvent(Item(
+                    mainCategory: mainCategoryName,
+                    subCategory: selectedCategory,
                     count: longTappedItem.count,
-                    itemName: longTappedItem.itemName)));
+                    name: longTappedItem.name)));
               }
             });
           }
@@ -67,6 +73,9 @@ class ItemsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (subCategoryName.isEmpty) {
+      return const SizedBox.shrink();
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: fullListHorizontalPadding,
@@ -76,7 +85,7 @@ class ItemsList extends StatelessWidget {
           Row(
             children: [
               Text(
-                categoryName,
+                subCategoryName,
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -88,15 +97,29 @@ class ItemsList extends StatelessWidget {
                     horizontal: paddingAroundIcons, vertical: 0),
                 constraints: const BoxConstraints(),
                 iconSize: iconSize,
-                onPressed: () => context
-                    .read<AddingItemsControlCubit>()
-                    .startAddingItems(categoryName),
+                onPressed: () {
+                  final autocompleteEntries = context
+                      .read<ItemListBloc>()
+                      .getItemsSeenForCategory(
+                          mainCategory: mainCategoryName,
+                          subCategory: subCategoryName);
+                  showModalBottomInputBox(context, autocompleteEntries,
+                      (String itemAdded, int quantity) {
+                    context.read<ItemListBloc>().add(ItemAddedEvent(
+                          Item(
+                              mainCategory: mainCategoryName,
+                              subCategory: subCategoryName,
+                              name: itemAdded,
+                              count: quantity),
+                        ));
+                  });
+                },
                 icon: const Icon(
                   Icons.add_circle_outline,
                   color: Colors.lightBlue,
                 ),
               ),
-              if (items.every((item) => item.itemName.isEmpty))
+              if (items.every((item) => item.name.isEmpty))
                 Expanded(
                   flex: 1,
                   child: Align(
@@ -111,9 +134,11 @@ class ItemsList extends StatelessWidget {
                       constraints: const BoxConstraints(),
 
                       iconSize: iconSize,
-                      onPressed: () => context
-                          .read<ItemListBloc>()
-                          .add(DeleteCategoryEvent(categoryName)),
+                      onPressed: () {
+                        context.read<ItemListBloc>().add(DeleteCategoryEvent(
+                            mainCategory: mainCategoryName,
+                            subCategory: subCategoryName));
+                      },
                       icon: const Icon(
                         Icons.delete_forever,
                         color: Colors.red,
@@ -129,7 +154,7 @@ class ItemsList extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (context, index) {
                 final currentItem = items
-                    .where((item) => item.itemName.isNotEmpty)
+                    .where((item) => item.name.isNotEmpty)
                     .elementAt(index);
                 return GestureDetector(
                   onLongPress: () async {
@@ -162,7 +187,7 @@ class ItemsList extends StatelessWidget {
                       children: [
                         Expanded(
                           flex: 10,
-                          child: Text(currentItem.itemName),
+                          child: Text(currentItem.name),
                         ),
                         Expanded(
                           flex: 1,
@@ -194,15 +219,15 @@ class ItemsList extends StatelessWidget {
                 );
               },
               // Here we are handling the placeholder item - the builder method won't be called for it
-              itemCount: items.where((item) => item.itemName.isNotEmpty).length,
+              itemCount: items.where((item) => item.name.isNotEmpty).length,
               shrinkWrap: true,
             ),
           ),
           const Divider(
             color: Colors.blueAccent,
             height: 0,
-            indent: 16,
-            endIndent: 16,
+            indent: dividerIndent,
+            endIndent: dividerIndent,
             thickness: 0.0,
           )
         ],

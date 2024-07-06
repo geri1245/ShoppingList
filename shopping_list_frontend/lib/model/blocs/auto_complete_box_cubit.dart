@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shopping_list_frontend/model/state/autocomplete_state.dart';
-import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
+import 'package:shopping_list_frontend/model/itemList/list_item.dart';
 
 class AutoCompleteBoxCubit extends Cubit<ItemAutoCompleteBoxState> {
   AutoCompleteBoxCubit(

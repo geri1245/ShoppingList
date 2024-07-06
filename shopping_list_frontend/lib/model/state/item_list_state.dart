@@ -1,5 +1,5 @@
 import 'package:shopping_list_frontend/model/itemList/item_list_status.dart';
-import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
+import 'package:shopping_list_frontend/model/itemList/list_item.dart';
 
 class ItemListState {
   ItemListState(

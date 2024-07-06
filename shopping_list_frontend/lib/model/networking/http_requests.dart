@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io' show Platform;
 
-import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
+import 'package:shopping_list_frontend/model/itemList/list_item.dart';
 
 const port = kReleaseMode ? '12568' : '3000';
 
@@ -13,7 +13,7 @@ Uri getBackendUrl(String endpoint) {
   }
 
   final baseUrl = (Platform.isAndroid || Platform.isIOS)
-      ? 'http://10.0.2.2:$port'
+      ? 'http://10.0.2.2:$port' // This is the emulator's "localhost"
       : 'http://localhost:$port';
 
   return Uri.parse("$baseUrl/$endpoint");
@@ -49,17 +49,14 @@ Future<RequestResult<Response>> fetchItems() async {
       final responseMap =
           jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
       final itemsJson = responseMap["items"] as List;
-      final itemsSeenJson = responseMap["items_seen"] as Map<String, dynamic>;
+      final itemsSeenJson = responseMap["items_seen"] as List;
 
-      final decodedItems =
-          itemsJson.map((e) => ShoppingItem.fromJson(e)).toList();
+      final decodedItems = itemsJson.map((e) => Item.fromJson(e)).toList();
       final itemsMap = itemListToItemMap(decodedItems);
-      CategoryToItemsSeenMap itemsSeenMap = {};
 
-      for (var entry in itemsSeenJson.entries) {
-        itemsSeenMap[entry.key] =
-            (entry.value as List<dynamic>).map((e) => e.toString()).toList();
-      }
+      final decodedItemsSeen =
+          itemsSeenJson.map((e) => ItemWithoutQuantity.fromJson(e)).toList();
+      final itemsSeenMap = itemsSeenToItemsSeenMap(decodedItemsSeen);
 
       return RequestResult(
           statusCode: response.statusCode,
@@ -73,7 +70,7 @@ Future<RequestResult<Response>> fetchItems() async {
   }
 }
 
-Future<int> addItem(ShoppingItem item) async {
+Future<int> addItem(Item item) async {
   try {
     var body = json.encode(item.toJson());
 
@@ -88,7 +85,7 @@ Future<int> addItem(ShoppingItem item) async {
   }
 }
 
-Future<int> removeItem(ShoppingItem item) async {
+Future<int> removeItem(Item item) async {
   try {
     var body = json.encode(item.toJson());
 

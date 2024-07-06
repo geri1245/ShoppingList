@@ -1,71 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shopping_list_frontend/model/blocs/item_list_bloc.dart';
-import 'package:shopping_list_frontend/model/blocs/adding_items_control_cubit.dart';
 import 'package:shopping_list_frontend/model/itemList/item_list_events.dart';
-import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
+import 'package:shopping_list_frontend/model/itemList/list_item.dart';
 import 'package:shopping_list_frontend/model/state/item_list_state.dart';
 import 'package:shopping_list_frontend/view/items_list.dart';
-import 'package:shopping_list_frontend/view/text_input_dialog.dart';
+import 'package:shopping_list_frontend/view/popups/bottom_sheet_autocomplete.dart';
+import 'package:shopping_list_frontend/view/popups/text_input_dialog.dart';
 
 /// Contains the description of a single tab inside the application
 class ItemTab extends StatelessWidget {
-  const ItemTab({super.key});
+  const ItemTab({required this.mainCategoryName, super.key});
+
+  final String mainCategoryName;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ItemListBloc, ItemListState>(
-      builder: (context, state) {
-        final slivers = SliverList(
-            delegate: SliverChildBuilderDelegate(
-          childCount: state.items.entries.length,
-          (context, index) {
-            final entry = state.items.entries.elementAt(index);
-            return Column(
-              children: [
-                ItemsList(categoryName: entry.key, items: entry.value),
-              ],
-            );
-          },
-        ));
-        return Column(
-          children: [
-            Expanded(
-              flex: 6,
-              child: CustomScrollView(
-                slivers: <Widget>[slivers],
-              ),
-            ),
-            SizedBox.fromSize(
+        buildWhen: (previous, current) {
+      final currentItems = current.items[mainCategoryName];
+      final previousItems = previous.items[mainCategoryName];
+
+      assert(currentItems != null);
+
+      final areEqual = (previousItems == null && currentItems != null) ||
+          !areSubCategoriesEqual(currentItems!, previousItems!);
+      return areEqual;
+    }, builder: (context, state) {
+      final childCount = state.items[mainCategoryName]?.entries.length ?? 0 + 1;
+      return SliverList(
+          delegate: SliverChildBuilderDelegate(
+        childCount: childCount,
+        (context, index) {
+          if (index == childCount - 1) {
+            return SizedBox.fromSize(
                 size: const Size.fromHeight(50.0),
                 child: OutlinedButton(
                   onPressed: () {
-                    getTextInputWithDialog(context, (newCategory) {
-                      if (newCategory.isNotEmpty) {
-                        // Add a placeholder item, so we still display the category correctly
-                        context.read<ItemListBloc>().add(ItemAddedEvent(
-                            ShoppingItem(
-                                category: newCategory,
-                                count: 0,
-                                itemName: "")));
-                        if (!context
-                            .read<ItemListBloc>()
-                            .state
-                            .items
-                            .keys
-                            .contains(newCategory)) {
-                          context
-                              .read<AddingItemsControlCubit>()
-                              .startAddingItems(newCategory);
+                    getTextInputWithDialog(
+                      context,
+                      (p0) {},
+                    ).then(
+                      (newCategory) {
+                        if (newCategory?.isNotEmpty ?? false) {
+                          context.read<ItemListBloc>().add(ItemAddedEvent(Item(
+                              mainCategory: mainCategoryName,
+                              subCategory: newCategory!,
+                              count: 0,
+                              name: "")));
+                          if (!state.items.keys.contains(newCategory)) {
+                            final autocompleteEntries = context
+                                .read<ItemListBloc>()
+                                .getItemsSeenForCategory(
+                                    mainCategory: mainCategoryName,
+                                    subCategory: newCategory);
+                            showModalBottomInputBox(
+                                context, autocompleteEntries,
+                                (String itemAdded, int quantity) {
+                              context.read<ItemListBloc>().add(ItemAddedEvent(
+                                    Item(
+                                        mainCategory: mainCategoryName,
+                                        subCategory: newCategory,
+                                        name: itemAdded,
+                                        count: quantity),
+                                  ));
+                            });
+                          }
                         }
-                      }
-                    });
+                      },
+                    );
                   },
                   child: const Text("Add new category"),
-                ))
-          ],
-        );
-      },
-    );
+                ));
+          } else {
+            final entry = state.items[mainCategoryName]!.entries
+                .where((element) => element.key.isNotEmpty)
+                .elementAt(index);
+            return ItemsList(
+              subCategoryName: entry.key,
+              items: entry.value,
+              mainCategoryName: mainCategoryName,
+            );
+          }
+        },
+      ));
+    });
   }
 }

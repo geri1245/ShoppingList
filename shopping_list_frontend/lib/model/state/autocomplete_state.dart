@@ -1,4 +1,4 @@
-import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
+import 'package:shopping_list_frontend/model/itemList/list_item.dart';
 
 class ItemAutoCompleteBoxState {
   ItemAutoCompleteBoxState(

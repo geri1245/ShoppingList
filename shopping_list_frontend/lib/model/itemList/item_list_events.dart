@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:shopping_list_frontend/model/itemList/shopping_item.dart';
+import 'package:shopping_list_frontend/model/itemList/list_item.dart';
 
 sealed class ItemListEvent extends Equatable {
   const ItemListEvent();
@@ -11,7 +11,7 @@ sealed class ItemListEvent extends Equatable {
 final class ItemAddedEvent extends ItemListEvent {
   const ItemAddedEvent(this.item);
 
-  final ShoppingItem item;
+  final Item item;
 }
 
 final class UpdateAllItemsEvent extends ItemListEvent {}
@@ -19,7 +19,7 @@ final class UpdateAllItemsEvent extends ItemListEvent {}
 final class ItemRemovedEvent extends ItemListEvent {
   const ItemRemovedEvent({required this.item});
 
-  final ShoppingItem item;
+  final Item item;
 }
 
 final class ErrorEvent extends ItemListEvent {
@@ -29,13 +29,17 @@ final class ErrorEvent extends ItemListEvent {
 }
 
 final class StartAddingItemsEvent extends ItemListEvent {
-  const StartAddingItemsEvent(this.category);
+  const StartAddingItemsEvent(
+      {required this.mainCategory, required this.subCategory});
 
-  final String category;
+  final String mainCategory;
+  final String subCategory;
 }
 
 final class DeleteCategoryEvent extends ItemListEvent {
-  const DeleteCategoryEvent(this.category);
+  const DeleteCategoryEvent(
+      {required this.mainCategory, required this.subCategory});
 
-  final String category;
+  final String mainCategory;
+  final String subCategory;
 }

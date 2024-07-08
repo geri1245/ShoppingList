@@ -24,13 +24,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   bool keyboardHasJustClosed = false;
 
   TabController? _tabController;
-  // int _activeTabIndex = 0;
   List<String> _tabs = [];
-
-  // TODO: remove if not needed
-  void _updateActiveTabIndex() {
-    // _activeTabIndex = _tabController!.index;
-  }
 
   void _addNewCategory() {
     getTextInputWithDialog(context, (newMainCategory) {
@@ -75,8 +69,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         final tabBarElements =
             _tabs.map((String name) => Tab(text: name)).toList();
         _tabController =
-            TabController(length: tabBarElements.length, vsync: this)
-              ..addListener(_updateActiveTabIndex);
+            TabController(length: tabBarElements.length, vsync: this);
 
         if (oldTabs.length + 1 == _tabs.length) {
           _tabController!.animateTo(_tabs.length - 1);

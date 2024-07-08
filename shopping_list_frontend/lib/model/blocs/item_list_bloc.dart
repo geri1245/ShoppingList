@@ -11,16 +11,17 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
   ItemListBloc()
       : super(ItemListState(
             items: {}, status: ItemListStatus.ok, itemsSeen: {})) {
-    on<ItemAddedEvent>(_onItemAdded);
-    on<ItemRemovedEvent>(_onItemCompleted);
-    on<UpdateAllItemsEvent>(_updateAlItems);
-    on<DeleteCategoryEvent>(_onCategoryDeleted);
+    on<AddItemEvent>(_onAddItemEvent);
+    on<RemoveItemEvent>(_onRemoveItemEvent);
+    on<UpdateAllItemsEvent>(_onUpdateAllItemsEvent);
+    on<DeleteSubcategoryEvent>(_onDeleteSubcategoryEvent);
+    on<DeleteMainCategoryEvent>(_onDeleteMainCategoryEvent);
   }
 
   Completer? _completer;
 
-  Future<void> _onItemAdded(
-    ItemAddedEvent event,
+  Future<void> _onAddItemEvent(
+    AddItemEvent event,
     Emitter<ItemListState> emit,
   ) async {
     final (newMap, couldAddItem) =
@@ -34,16 +35,20 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
         _ => ItemListStatus.unknownError,
       };
 
-      emit(ItemListState.cloneWithChanges(state,
-          status: newStatus, items: newMap));
+      if (newStatus == ItemListStatus.ok) {
+        emit(ItemListState.cloneWithChanges(state,
+            status: newStatus, items: newMap));
+      } else {
+        emit(ItemListState.cloneWithChanges(state, status: newStatus));
+      }
     } else {
       emit(ItemListState.cloneWithChanges(state,
           status: ItemListStatus.itemAlreadyInList));
     }
   }
 
-  Future<void> _onItemCompleted(
-    ItemRemovedEvent event,
+  Future<void> _onRemoveItemEvent(
+    RemoveItemEvent event,
     Emitter<ItemListState> emit,
   ) async {
     final (newMap, couldRemove) = removeFromMap(state.items, event.item);
@@ -54,15 +59,19 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
         409 => ItemListStatus.failedToRemoveItem,
         _ => ItemListStatus.unknownError,
       };
-      emit(ItemListState.cloneWithChanges(state,
-          status: newStatus, items: newMap));
+      if (newStatus == ItemListStatus.ok) {
+        emit(ItemListState.cloneWithChanges(state,
+            status: newStatus, items: newMap));
+      } else {
+        emit(ItemListState.cloneWithChanges(state, status: newStatus));
+      }
     } else {
       emit(ItemListState.cloneWithChanges(state,
           status: ItemListStatus.failedToRemoveItem));
     }
   }
 
-  Future<void> _updateAlItems(
+  Future<void> _onUpdateAllItemsEvent(
     UpdateAllItemsEvent event,
     Emitter<ItemListState> emit,
   ) async {
@@ -88,14 +97,33 @@ class ItemListBloc extends Bloc<ItemListEvent, ItemListState> {
     }
   }
 
-  Future<void> _onCategoryDeleted(
-    DeleteCategoryEvent event,
+  Future<void> _onDeleteSubcategoryEvent(
+    DeleteSubcategoryEvent event,
     Emitter<ItemListState> emit,
   ) async {
     if (state.items[event.mainCategory]?[event.subCategory]?.length == 1) {
       var itemToRemove =
           state.items[event.mainCategory]![event.subCategory]![0];
-      add(ItemRemovedEvent(item: itemToRemove));
+      add(RemoveItemEvent(item: itemToRemove));
+    } else {
+      emit(ItemListState.cloneWithChanges(state,
+          status: ItemListStatus.categoryNotEmptyOrDoesntExist));
+    }
+  }
+
+  Future<void> _onDeleteMainCategoryEvent(
+    DeleteMainCategoryEvent event,
+    Emitter<ItemListState> emit,
+  ) async {
+    if (state.items[event.categoryToDelete]?.keys.length == 1) {
+      final onlyElement =
+          state.items[event.categoryToDelete]!.entries.elementAt(0);
+      if (onlyElement.key.isEmpty &&
+          onlyElement.value.length == 1 &&
+          onlyElement.value.first.name.isEmpty) {
+        return add(RemoveItemEvent(
+            item: Item.placeholderFromMainCategory(event.categoryToDelete)));
+      }
     } else {
       emit(ItemListState.cloneWithChanges(state,
           status: ItemListStatus.categoryNotEmptyOrDoesntExist));

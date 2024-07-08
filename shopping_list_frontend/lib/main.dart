@@ -55,7 +55,9 @@ class _MyHomePageState extends State<MyHomePage> {
           ));
         },
         child: BlocBuilder<ItemListBloc, ItemListState>(
-          buildWhen: (previous, current) => previous.status != current.status,
+          buildWhen: (previous, current) =>
+              previous.status != current.status &&
+              current.status != ItemListStatus.networkError,
           builder: (context, state) => Scaffold(
               resizeToAvoidBottomInset: false,
               body: switch (state.status) {

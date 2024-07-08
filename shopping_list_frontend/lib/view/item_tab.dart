@@ -19,12 +19,15 @@ class ItemTab extends StatelessWidget {
     return BlocBuilder<ItemListBloc, ItemListState>(
         buildWhen: (previous, current) {
       final currentItems = current.items[mainCategoryName];
+
+      if (currentItems == null) {
+        return false;
+      }
+
       final previousItems = previous.items[mainCategoryName];
 
-      assert(currentItems != null);
-
-      final areEqual = (previousItems == null && currentItems != null) ||
-          !areSubCategoriesEqual(currentItems!, previousItems!);
+      final areEqual = previousItems == null ||
+          !areSubCategoriesEqual(currentItems, previousItems);
       return areEqual;
     }, builder: (context, state) {
       final childCount = state.items[mainCategoryName]?.entries.length ?? 0 + 1;
@@ -43,7 +46,7 @@ class ItemTab extends StatelessWidget {
                     ).then(
                       (newCategory) {
                         if (newCategory?.isNotEmpty ?? false) {
-                          context.read<ItemListBloc>().add(ItemAddedEvent(Item(
+                          context.read<ItemListBloc>().add(AddItemEvent(Item(
                               mainCategory: mainCategoryName,
                               subCategory: newCategory!,
                               count: 0,
@@ -57,7 +60,7 @@ class ItemTab extends StatelessWidget {
                             showModalBottomInputBox(
                                 context, autocompleteEntries,
                                 (String itemAdded, int quantity) {
-                              context.read<ItemListBloc>().add(ItemAddedEvent(
+                              context.read<ItemListBloc>().add(AddItemEvent(
                                     Item(
                                         mainCategory: mainCategoryName,
                                         subCategory: newCategory,

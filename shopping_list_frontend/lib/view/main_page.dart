@@ -31,7 +31,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       if (newMainCategory.isNotEmpty) {
         // Add a placeholder item, so we still display the category correctly
         context.read<ItemListBloc>().add(
-            ItemAddedEvent(Item.placeholderFromMainCategory(newMainCategory)));
+            AddItemEvent(Item.placeholderFromMainCategory(newMainCategory)));
       }
     });
   }
@@ -42,8 +42,9 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       (proceedWithDelete) {
         if (proceedWithDelete == true) {
           // Delete the placeholder item, thus removing the main category
-          context.read<ItemListBloc>().add(ItemRemovedEvent(
-              item: Item.placeholderFromMainCategory(tabToDelete)));
+          context.read<ItemListBloc>().add(DeleteMainCategoryEvent(
+                categoryToDelete: tabToDelete,
+              ));
         }
       },
     );

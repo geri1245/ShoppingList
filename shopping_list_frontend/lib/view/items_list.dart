@@ -29,7 +29,7 @@ class ItemsList extends StatelessWidget {
   final List<Item> items;
 
   void _onItemChecked(BuildContext context, Item item) {
-    context.read<ItemListBloc>().add(ItemRemovedEvent(item: item));
+    context.read<ItemListBloc>().add(RemoveItemEvent(item: item));
   }
 
   void _onItemLongTapActionSelected(
@@ -54,8 +54,8 @@ class ItemsList extends StatelessWidget {
                 .then((selectedCategory) {
               if (selectedCategory != null) {
                 final itemListBloc = context.read<ItemListBloc>();
-                itemListBloc.add(ItemRemovedEvent(item: longTappedItem));
-                itemListBloc.add(ItemAddedEvent(Item(
+                itemListBloc.add(RemoveItemEvent(item: longTappedItem));
+                itemListBloc.add(AddItemEvent(Item(
                     mainCategory: mainCategoryName,
                     subCategory: selectedCategory,
                     count: longTappedItem.count,
@@ -66,7 +66,7 @@ class ItemsList extends StatelessWidget {
         case ItemLongTapAction.delete:
           context
               .read<ItemListBloc>()
-              .add(ItemRemovedEvent(item: longTappedItem));
+              .add(RemoveItemEvent(item: longTappedItem));
       }
     }
   }
@@ -105,7 +105,7 @@ class ItemsList extends StatelessWidget {
                           subCategory: subCategoryName);
                   showModalBottomInputBox(context, autocompleteEntries,
                       (String itemAdded, int quantity) {
-                    context.read<ItemListBloc>().add(ItemAddedEvent(
+                    context.read<ItemListBloc>().add(AddItemEvent(
                           Item(
                               mainCategory: mainCategoryName,
                               subCategory: subCategoryName,
@@ -135,7 +135,7 @@ class ItemsList extends StatelessWidget {
 
                       iconSize: iconSize,
                       onPressed: () {
-                        context.read<ItemListBloc>().add(DeleteCategoryEvent(
+                        context.read<ItemListBloc>().add(DeleteSubcategoryEvent(
                             mainCategory: mainCategoryName,
                             subCategory: subCategoryName));
                       },

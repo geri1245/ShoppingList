@@ -5,7 +5,7 @@ import 'dart:io' show Platform;
 
 import 'package:shopping_list_frontend/model/itemList/list_item.dart';
 
-const port = kReleaseMode ? '12568' : '3000';
+const port = '12568';
 
 Uri getBackendUrl(String endpoint) {
   if (kReleaseMode) {

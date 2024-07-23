@@ -92,7 +92,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                     NestedScrollView.sliverOverlapAbsorberHandleFor(context),
                 sliver: SliverAppBar(
                   title: const Text('My lists'),
-                  backgroundColor: Theme.of(context).primaryColor.withAlpha(80),
+                  backgroundColor: Theme.of(context).primaryColor,
                   pinned: true,
                   actions: [
                     Padding(

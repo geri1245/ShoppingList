@@ -8,10 +8,10 @@ import 'package:shopping_list_frontend/view/popups/bottom_sheet_autocomplete.dar
 import 'package:shopping_list_frontend/view/popups/long_tap_item_action_popup_menu.dart';
 import 'package:shopping_list_frontend/view/popups/string_list_popup_menu.dart';
 
-const paddingBetweenListItems = 8.0;
+const paddingBetweenListItems = 6.0;
 const paddingAroundCategoryTitles = 12.0;
 const paddingAroundIcons = 12.0;
-const iconSize = 20.0;
+const iconSize = 28.0;
 const dividerIndent = 16.0;
 
 const fullListHorizontalPadding = 26.0;

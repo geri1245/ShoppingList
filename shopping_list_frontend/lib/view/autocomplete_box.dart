@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shopping_list_frontend/view/autocomplete_options.dart';
 import 'package:shopping_list_frontend/view/number_input.dart';
 
 typedef ItemAddedFunction = void Function(String addedItem, int quantity);
@@ -72,18 +73,37 @@ class AutocompleteBoxState extends State<AutocompleteBox> {
 
                   return matchesBeginning.followedBy(matchesElsewhere);
                 },
+                optionsViewBuilder: (context, onSelected, options) {
+                  return AutocompleteOptions(
+                    displayStringForOption: (option) => option,
+                    maxOptionsHeight: 200,
+                    onSelected: onSelected,
+                    openDirection: OptionsViewOpenDirection.up,
+                    options: options,
+                  );
+                },
                 fieldViewBuilder: (context, textEditingController, focusNode,
                     onFieldSubmitted) {
                   _textEditingController = textEditingController;
                   _focusNode = focusNode;
                   _focusNode.requestFocus();
 
-                  return TextFormField(
-                    controller: textEditingController,
-                    focusNode: focusNode,
-                    onFieldSubmitted: (String value) {
-                      _onCurrentTextAdded(context);
-                    },
+                  return Flex(
+                    direction: Axis.horizontal,
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: textEditingController,
+                          focusNode: focusNode,
+                          onFieldSubmitted: (String value) {
+                            _onCurrentTextAdded(context);
+                          },
+                        ),
+                      ),
+                      IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.delete_forever)),
+                    ],
                   );
                 },
                 onSelected: (selectedItem) =>
